@@ -18,7 +18,7 @@ class obstacle {
         this.hitbox = { top: 15, bottom: 0, left: 15, right: 15 };
         break;
       case "block":
-        this.hitbox = { top: 30, bottom: 0, left: 7, right: 0 };
+        this.hitbox = { top: 20, bottom: 0, left: 7, right: 0 };
         break;
       default:
         this.hitbox = { top: 0, bottom: 0, left: 0, right: 0 };
@@ -77,7 +77,7 @@ class block extends obstacle {
     super({ type, originalPos, rotation });
     switch (this.type) {
       case "block":
-        this.slideHitbox = { top: 0, bottom: 35, left: 0, right: 0 };
+        this.slideHitbox = { top: 0, bottom: 30, left: 0, right: 0 };
         break;
       default:
         this.slideHitbox = { top: 0, bottom: 0, left: 0, right: 0 };

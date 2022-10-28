@@ -4,20 +4,22 @@ const c = canvas.getContext("2d");
 canvas.width = 640;
 canvas.height = 480;
 
+const deathSound = new Audio("resources/explode_11.mp3");
+
 const tau = 2 * Math.PI;
 let tps = 60;
 
 let playerImage = new Image();
-playerImage.src = "img/coakmuffer.jpeg";
+playerImage.src = "resources/coakmuffer.jpeg";
 
 let backgroundImage = new Image();
-backgroundImage.src = "img/background.jpeg";
+backgroundImage.src = "resources/background.jpeg";
 
 let spikeImage = new Image();
-spikeImage.src = "img/spike.png";
+spikeImage.src = "resources/spike.png";
 
 let blockImage = new Image();
-blockImage.src = "img/block.png";
+blockImage.src = "resources/block.png";
 
 //let player = new icon({ sideLength: 50, image: playerImage });
 
@@ -321,6 +323,7 @@ animate();
 
 function death() {
   console.log("broooooo");
+  //deathSound.play();
   clearInterval(intervalID);
 }
 
