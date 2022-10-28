@@ -25,7 +25,8 @@ let currentAttempt = {
   x: 0,
   att: 1,
   tick: 0,
-  speed: 7,
+  speedSetting: 7,
+  speed: 7 * (60 / tps),
 
   renderedHazards: [],
   renderedBlocks: [],
@@ -83,37 +84,95 @@ let currentAttempt = {
 };
 
 let player = {
+  image: playerImage,
   sideLength: 50,
   pos: {
     y: 50,
     x: 120,
   },
-  image: playerImage,
-  airFrame: -1,
   angle: 0,
+  jump: {
+    isJumping: false,
+    tickStarted: 0,
+    heightStarted: 50,
+    angleStarted: 0,
+  },
+  fall: {
+    isFalling: false,
+    tickStarted: 0,
+    heightStarted: 50,
+    angleStarted: 0,
+  },
   onGround: true,
   holding: false,
 
+  doFall() {
+    this.fall = {
+      isFalling: true,
+      tickStarted: currentAttempt.tick,
+      heightStarted: this.pos.y,
+      angleStarted: this.angle,
+    };
+  },
+
+  doJump() {
+    this.jump = {
+      isJumping: true,
+      tickStarted: currentAttempt.tick,
+      heightStarted: this.pos.y,
+      angleStarted: this.angle,
+    };
+  },
+
   land() {
+    console.log("landed");
     this.pos.y = this.sideLength * Math.ceil(this.pos.y / this.sideLength);
-    this.angle =
-      0.5 * Math.PI * Math.round(((this.angle % tau) / tau) * 4 - 0.2);
-    this.airFrame = -1;
+    this.fall.isFalling = false;
+    this.jump.isJumping = false;
     if (!this.holding) {
       this.onGround = true;
+      this.jump.isJumping = false;
+      this.angle =
+        0.5 * Math.PI * Math.round(((this.angle % tau) / tau) * 4 - 0.2);
+    } else {
+      this.doJump();
     }
   },
 
   updatePosition() {
     if (this.onGround && this.holding) {
       this.onGround = false;
+      this.doJump();
     }
-    if (!this.onGround) {
-      this.angle -= 0.1;
-      this.airFrame++;
+    if (this.jump.isJumping) {
+      this.angle =
+        this.jump.angleStarted -
+        (currentAttempt.tick - this.jump.tickStarted) * 0.115 * (60 / tps);
+    } else if (this.fall.isFalling) {
+      this.angle =
+        this.fall.angleStarted -
+        (currentAttempt.tick - this.fall.tickStarted) * 0.12 * (60 / tps);
     }
-    if (this.airFrame > -1) {
-      this.pos.y += 13.2 - this.airFrame / 1.1;
+    if (this.jump.isJumping === true) {
+      //this.pos.y += (13.2 - this.airTime) / 1.1;
+      let jumpProgress =
+        (currentAttempt.tick - this.jump.tickStarted) * (60 / 26 / tps) + 0.05;
+      //console.log("jump prog: " + jumpProgress);
+      this.pos.y =
+        this.jump.heightStarted +
+        400 * jumpProgress -
+        400 * jumpProgress * jumpProgress;
+      if (this.pos.y <= this.sideLength) {
+        this.land();
+      }
+    }
+    if (this.fall.isFalling === true) {
+      let fallProgress =
+        (currentAttempt.tick - this.fall.tickStarted) * (60 / 26 / tps) - 0.02;
+      this.pos.y =
+        this.fall.heightStarted -
+        400 * fallProgress * fallProgress -
+        80 * fallProgress;
       if (this.pos.y <= this.sideLength) {
         this.land();
       }
@@ -156,7 +215,7 @@ let background = {
     // if (this.pos.x - currentAttempt.speed <= -canvas.width) {
     //   console.log(this.pos.x);
     // }
-    this.x = (this.x - currentAttempt.speed / 3) % canvas.width;
+    this.x = ((-currentAttempt.tick * currentAttempt.speed) / 3) % canvas.width;
   },
 
   draw() {
@@ -171,10 +230,11 @@ let background = {
   },
 };
 
+let startTime = Date.now();
 let intervalID = setInterval(nextTick, 1000 / tps);
 function nextTick() {
-  currentAttempt.tick++;
-  currentAttempt.x += currentAttempt.speed;
+  currentAttempt.tick = ((Date.now() - startTime) * tps) / 1000;
+  currentAttempt.x = currentAttempt.tick * currentAttempt.speed;
   if (currentAttempt.tick % 60) {
     currentAttempt.renderNextGroup();
     currentAttempt.unrender();
@@ -184,9 +244,7 @@ function nextTick() {
   for (let ob of currentAttempt.renderedHazards) {
     ob.updatePosition();
     if (ob.checkDeath()) {
-      console.log("broooooo");
-      //alert("deat");
-      clearInterval(intervalID);
+      death();
     }
   }
   let landing = false;
@@ -197,16 +255,24 @@ function nextTick() {
   for (let ob of currentAttempt.renderedBlocks) {
     ob.updatePosition();
     if (ob.checkDeath()) {
-      console.log("broooooo");
-      //alert("deat");
-      clearInterval(intervalID);
+      death();
     }
     let sliding = ob.checkSliding();
-    if (!player.onGround && sliding) {
+    if (
+      !player.onGround &&
+      sliding &&
+      player.jump.isJumping === true &&
+      (currentAttempt.tick - player.jump.tickStarted) * (60 / 26 / tps) > 0.4
+    ) {
       landing = true;
     }
 
-    if (player.pos.y === player.sideLength || player.airFrame > -1 || sliding) {
+    if (
+      player.pos.y === player.sideLength ||
+      player.jump.isJumping ||
+      player.fall.isFalling ||
+      sliding
+    ) {
       falling = false;
     }
   }
@@ -217,7 +283,7 @@ function nextTick() {
   if (falling) {
     console.log("falling");
     player.onGround = false;
-    player.airFrame = 13;
+    player.doFall();
   }
   player.updatePosition();
 }
@@ -225,6 +291,7 @@ function nextTick() {
 function animate() {
   animationFrame = window.requestAnimationFrame(animate);
 
+  //console.log(animationFrame / currentAttempt.tick);
   background.draw();
   for (let ob of currentAttempt.renderedHazards) {
     ob.draw();
@@ -235,6 +302,11 @@ function animate() {
   player.draw();
 }
 animate();
+
+function death() {
+  console.log("broooooo");
+  clearInterval(intervalID);
+}
 
 document.addEventListener("keydown", (e) => {
   if (e.key === " " || e.key === "ArrowUp") {

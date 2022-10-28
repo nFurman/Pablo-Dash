@@ -38,7 +38,7 @@ class obstacle {
         hitbox = { top: 10, bottom: 0, left: 19, right: 19 };
         break;
       case "block":
-        hitbox = { top: 10, bottom: 0, left: 7, right: 0 };
+        hitbox = { top: 30, bottom: 0, left: 7, right: 0 };
     }
     if (
       //checks if the player is too far left or too far right to collide, that way it returns and doesnt need to check the rest

@@ -1,7 +1,7 @@
 let obstacles = [
   { type: "spike", originalPos: { x: 1000, y: 50 } },
 
-  { type: "block", originalPos: { x: 400, y: 50 } },
+  { type: "block", originalPos: { x: 600, y: 50 } },
 
   { type: "spike", originalPos: { x: 1700, y: 50 } },
   { type: "spike", originalPos: { x: 1750, y: 50 } },
