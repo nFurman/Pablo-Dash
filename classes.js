@@ -1,5 +1,5 @@
 class obstacle {
-  constructor({ type, pos, rotation }) {
+  constructor({ type, originalPos, rotation }) {
     switch (type) {
       case "spike":
         this.image = spikeImage;
@@ -9,13 +9,17 @@ class obstacle {
         break;
     }
     this.type = type;
-    this.pos = pos;
+    this.originalPos = originalPos;
+    this.pos = { ...originalPos };
     this.rotation = rotation;
   }
 
   updatePosition() {
-    this.pos.x -= currentAttempt.speed;
+    //this.pos.x = this.pos.x - currentAttempt.speed;
+    this.pos.x = this.originalPos.x - currentAttempt.x;
+    //console.log(currentAttempt.speed);
   }
+  //this.pos.x = this.originalPos.x - currentAttempt.x;
 
   draw() {
     c.drawImage(
@@ -34,7 +38,7 @@ class obstacle {
         hitbox = { top: 10, bottom: 0, left: 19, right: 19 };
         break;
       case "block":
-        hitbox = { top: 10, bottom: 0, left: 20, right: 0 };
+        hitbox = { top: 10, bottom: 0, left: 7, right: 0 };
     }
     if (
       //checks if the player is too far left or too far right to collide, that way it returns and doesnt need to check the rest
@@ -57,7 +61,7 @@ class block extends obstacle {
     let hitbox = { top: 0, bottom: 0, left: 0, right: 0 };
     switch (this.type) {
       case "block":
-        hitbox = { top: 0, bottom: 40, left: 0, right: 0 };
+        hitbox = { top: 0, bottom: 35, left: 0, right: 0 };
     }
     if (
       //checks if the player is too far left or too far right to collide, that way it returns and doesnt need to check the rest

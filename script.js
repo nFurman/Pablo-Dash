@@ -22,6 +22,7 @@ blockImage.src = "img/block.png";
 //let player = new icon({ sideLength: 50, image: playerImage });
 
 let currentAttempt = {
+  x: 0,
   att: 1,
   tick: 0,
   speed: 7,
@@ -45,10 +46,9 @@ let currentAttempt = {
     for (let ob of obstacles) {
       if (
         ob.hasBeenRendered != true &&
-        ob.pos.x - this.tick * this.speed < canvas.width + 50 &&
-        ob.pos.x - this.tick * this.speed > -50
+        ob.originalPos.x - this.x < canvas.width + 50 &&
+        ob.originalPos.x - this.x > -50
       ) {
-        ob.pos.x -= this.tick * this.speed;
         if (ob.type === "block") {
           this.renderedBlocks.push(new block(ob));
         } else {
@@ -89,7 +89,7 @@ let player = {
     x: 120,
   },
   image: playerImage,
-  airFrame: 0,
+  airFrame: -1,
   angle: 0,
   onGround: true,
   holding: false,
@@ -98,7 +98,7 @@ let player = {
     this.pos.y = this.sideLength * Math.ceil(this.pos.y / this.sideLength);
     this.angle =
       0.5 * Math.PI * Math.round(((this.angle % tau) / tau) * 4 - 0.2);
-    this.airFrame = 0;
+    this.airFrame = -1;
     if (!this.holding) {
       this.onGround = true;
     }
@@ -112,7 +112,7 @@ let player = {
       this.angle -= 0.1;
       this.airFrame++;
     }
-    if (this.airFrame > 0) {
+    if (this.airFrame > -1) {
       this.pos.y += 13.2 - this.airFrame / 1.1;
       if (this.pos.y <= this.sideLength) {
         this.land();
@@ -174,6 +174,7 @@ let background = {
 let intervalID = setInterval(nextTick, 1000 / tps);
 function nextTick() {
   currentAttempt.tick++;
+  currentAttempt.x += currentAttempt.speed;
   if (currentAttempt.tick % 60) {
     currentAttempt.renderNextGroup();
     currentAttempt.unrender();
@@ -205,7 +206,7 @@ function nextTick() {
       landing = true;
     }
 
-    if (player.pos.y === player.sideLength || player.airFrame > 0 || sliding) {
+    if (player.pos.y === player.sideLength || player.airFrame > -1 || sliding) {
       falling = false;
     }
   }
@@ -216,7 +217,7 @@ function nextTick() {
   if (falling) {
     console.log("falling");
     player.onGround = false;
-    player.airFrame = 14;
+    player.airFrame = 13;
   }
   player.updatePosition();
 }
