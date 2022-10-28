@@ -1,4 +1,4 @@
-const canvas = document.querySelector("canvas");
+const canvas = document.getElementById("canvas");
 const c = canvas.getContext("2d");
 
 canvas.width = 640;
@@ -204,6 +204,18 @@ let player = {
       c.translate(-translateX, -translateY);
     }
   },
+  drawHitboxes() {
+    c.fillStyle = "forestGreen";
+    c.globalAlpha = 0.7;
+
+    c.fillRect(
+      this.pos.x,
+      canvas.height - this.pos.y,
+      player.sideLength,
+      player.sideLength
+    );
+    c.globalAlpha = 1;
+  },
 };
 
 let background = {
@@ -256,6 +268,7 @@ function nextTick() {
     ob.updatePosition();
     if (ob.checkDeath()) {
       death();
+      return;
     }
     let sliding = ob.checkSliding();
     if (
@@ -295,11 +308,14 @@ function animate() {
   background.draw();
   for (let ob of currentAttempt.renderedHazards) {
     ob.draw();
+    ob.drawHitboxes();
   }
   for (let ob of currentAttempt.renderedBlocks) {
     ob.draw();
+    ob.drawHitboxes();
   }
   player.draw();
+  player.drawHitboxes();
 }
 animate();
 
