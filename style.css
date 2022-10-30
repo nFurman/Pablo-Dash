@@ -1,6 +1,7 @@
 body {
-  background-color: black;
+  background-color: blue;
   margin: 0;
+  position: fixed;
 }
 canvas {
   background-color: white;
