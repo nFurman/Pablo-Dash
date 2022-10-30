@@ -13,11 +13,11 @@ class obstacle {
     this.originalPos = originalPos;
     this.pos = { ...originalPos };
     this.rotation = rotation;
-    this.showHitboxes = false;
+    this.hitboxesShown = false;
 
     switch (this.type) {
       case "spike":
-        this.hitbox = { top: 30, bottom: 0, left: 30, right: 30 };
+        this.hitbox = { top: 30, bottom: 0, left: 25, right: 25 };
         break;
       case "block":
         this.hitbox = { top: 40, bottom: 0, left: 14, right: 0 };
@@ -36,7 +36,6 @@ class obstacle {
     this.pos.x = this.originalPos.x - currentAttempt.x;
     //console.log(currentAttempt.speed);
   }
-  //this.pos.x = this.originalPos.x - currentAttempt.x;
 
   draw() {
     c.drawImage(
@@ -67,7 +66,7 @@ class obstacle {
   }
 
   drawHitboxes() {
-    if (!this.showHitboxes) {
+    if (!this.hitboxesShown) {
       return;
     }
     c.fillStyle = "red";
@@ -98,7 +97,7 @@ class block extends obstacle {
     }
   }
   drawHitboxes() {
-    if (!this.showHitboxes) {
+    if (!this.hitboxesShown) {
       return;
     }
     super.drawHitboxes();
@@ -143,7 +142,7 @@ class block extends obstacle {
 class player {
   constructor(image) {
     this.image = image;
-    this.sideLength = 71;
+    this.sideLength = 73;
     this.pos = {
       y: this.sideLength + currentAttempt.floorY,
       x: 4.7 * gridLength,
@@ -163,7 +162,7 @@ class player {
     this.explosion = {};
     this.holding = false;
     this.show = true;
-    this.showHitboxes = false;
+    this.hitboxesShown = false;
   }
 
   reset() {
@@ -185,6 +184,7 @@ class player {
     this.isExploding = false;
     this.explosion = {};
     this.show = true;
+    this.hitboxesShown = false;
   }
 
   doFall() {
@@ -209,9 +209,7 @@ class player {
   }
 
   land(y) {
-    console.trace();
-
-    console.log("landed");
+    //console.trace("landed");
     this.pos.y = this.sideLength + y;
     if (this.pos.y < this.sideLength + currentAttempt.floorY) {
       this.pos.y = this.sideLength + currentAttempt.floorY;
@@ -219,7 +217,7 @@ class player {
     this.fall.isFalling = false;
     if (!this.holding) {
       this.jump.isJumping = false;
-      this.sliding = {
+      this.slide = {
         isSliding: true,
         height: y,
       };
@@ -244,10 +242,10 @@ class player {
         this.fall.angleStarted -
         (currentAttempt.tick - this.fall.tickStarted) * 0.124 * (60 / tps);
     }
-    if (this.jump.isJumping === true) {
+    if (this.jump.isJumping) {
       //this.pos.y += (13.2 - this.airTime) / 1.1;
       let jumpProgress =
-        (currentAttempt.tick - this.jump.tickStarted) * (60 / 26 / tps) + 0.05;
+        (currentAttempt.tick + 1 - this.jump.tickStarted) * (60 / 26 / tps);
       //console.log("jump prog: " + jumpProgress);
       this.pos.y =
         this.jump.heightStarted +
@@ -257,15 +255,57 @@ class player {
         this.land(currentAttempt.floorY);
       }
     }
-    if (this.fall.isFalling === true) {
+    if (this.fall.isFalling) {
       let fallProgress =
-        (currentAttempt.tick - this.fall.tickStarted) * (60 / 26 / tps) - 0.02;
+        (currentAttempt.tick - this.fall.tickStarted) * (60 / 26 / tps);
       this.pos.y =
         this.fall.heightStarted -
         8 * gridLength * fallProgress * fallProgress -
         8 * (gridLength / 5) * fallProgress;
+      //+0.08 * gridLength;
       if (this.pos.y <= this.sideLength + currentAttempt.floorY) {
         this.land(currentAttempt.floorY);
+      }
+    }
+  }
+
+  checkDeath() {
+    for (let ob of currentAttempt.renderedHazards) {
+      ob.updatePosition();
+      if (ob.checkDeath()) {
+        death();
+      }
+    }
+
+    for (let ob of currentAttempt.renderedBlocks) {
+      ob.updatePosition();
+      if (ob.checkDeath()) {
+        death();
+      }
+    }
+  }
+
+  updateStatus() {
+    if (this.pos.y <= this.sideLength + currentAttempt.floorY) {
+      if (!this.slide.isSliding) {
+        console.log(currentAttempt.floorY);
+
+        this.land(currentAttempt.floorY);
+      }
+    } else {
+      let wasSliding = false;
+      if (this.slide.isSliding) {
+        console.log("wasSlidin");
+        wasSliding = true;
+      }
+
+      currentAttempt.checkSliding();
+
+      if (wasSliding && !this.slide.isSliding) {
+        this.doFall();
+      } else if (!wasSliding && this.slide.isSliding) {
+        console.log("landin");
+        this.land(this.slide.height);
       }
     }
   }
@@ -299,7 +339,7 @@ class player {
     }
   }
   drawHitboxes() {
-    if (!this.showHitboxes) {
+    if (!this.hitboxesShown) {
       return;
     }
     c.fillStyle = "forestGreen";
@@ -375,14 +415,51 @@ class background {
   }
 
   draw() {
-    c.drawImage(this.image, this.x, 0, canvas.width, canvas.height);
     c.drawImage(
       this.image,
-      this.x + canvas.width,
-      0,
+      this.x,
+      -currentAttempt.floorY,
       canvas.width,
       canvas.height
     );
+    c.drawImage(
+      this.image,
+      this.x + canvas.width,
+      -currentAttempt.floorY,
+      canvas.width,
+      canvas.height
+    );
+  }
+}
+
+class ground {
+  constructor(image) {
+    this.image = image;
+    this.x = 0;
+  }
+
+  updatePosition() {
+    //this.pos.x = this.pos.x > -canvas.width ? this.pos.x - currentAttempt.speed : canvas.width;
+    // if (this.pos.x - currentAttempt.speed <= -canvas.width) {
+    //   console.log(this.pos.x);
+    // }
+    this.x = (-currentAttempt.tick * currentAttempt.speed) % 1744;
+  }
+
+  draw() {
+    for (let i = 0; i < 8; i++) {
+      c.drawImage(
+        this.image,
+        843,
+        0,
+        436,
+        300,
+        this.x + i * 436,
+        canvas.height - currentAttempt.floorY,
+        436,
+        300
+      );
+    }
   }
 }
 
@@ -400,13 +477,15 @@ class attempt {
     this.renderedHazards = [];
     this.renderedBlocks = [];
 
-    this.floorY = 168;
+    this.obstacleHitboxesShown = false;
+
+    this.floorY = 174;
   }
 
   copyObstacles() {
     this.currentObstacles = JSON.parse(JSON.stringify(this.obstacles));
     for (let ob of this.currentObstacles) {
-      ob.originalPos.x *= gridLength;
+      ob.originalPos.x = ob.originalPos.x * gridLength + currentPlayer.pos.x;
       ob.originalPos.y = ob.originalPos.y * gridLength + currentAttempt.floorY;
       if (ob.size === undefined) {
         ob.size = gridLength;
@@ -426,20 +505,20 @@ class attempt {
   }
 
   renderNextGroup() {
-    //console.log("trying to render");
+    console.log("trying to render");
     for (let ob of this.currentObstacles) {
       if (
         ob.hasBeenRendered != true &&
         ///need to fix this i dont want to mutate obstacles
-        ob.originalPos.x - this.x < canvas.width + 50 &&
-        ob.originalPos.x - this.x > -50
+        ob.originalPos.x - this.x < canvas.width + 200 &&
+        ob.originalPos.x - this.x > -200
       ) {
         if (ob.type === "block") {
           this.renderedBlocks.push(new block(ob));
         } else {
           this.renderedHazards.push(new obstacle(ob));
         }
-        //console.log("rendered a " + ob.type);
+        console.log("rendered a " + ob.type);
         ob.hasBeenRendered = true;
       }
     }
@@ -479,6 +558,15 @@ class attempt {
     currentPlayer.slide.isSliding = false;
     for (let ob of this.renderedBlocks) {
       ob.checkSliding();
+    }
+  }
+
+  showObstacleHitboxes() {
+    for (let ob of this.renderedBlocks) {
+      ob.hitboxesShown = true;
+    }
+    for (let ob of this.renderedHazards) {
+      ob.hitboxesShown = true;
     }
   }
 }
