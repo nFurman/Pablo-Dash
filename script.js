@@ -8,7 +8,7 @@ const tau = 2 * Math.PI;
 
 const deathSound = new Audio("resources/explode_11.mp3");
 
-let tps = 40;
+let tps = 600;
 
 let gridLength = 73;
 
@@ -36,17 +36,31 @@ wavePortalImage.src = "resources/wavePortal.png";
 let cubePortalImage = new Image();
 cubePortalImage.src = "resources/cubePortal.png";
 
+const gamemodes = {
+  cube: {
+    hitbox: { left: 0, right: 0, top: 0, bottom: 0 },
+    hitboxForBlocks: { left: 0, right: 0, top: 20, bottom: 20 },
+    image: cubeImage,
+  },
+  wave: {
+    image: waveImage,
+    hitbox: { left: 7, right: 40, top: 30, bottom: 30 },
+    hitboxForBlocks: { left: 7, right: 40, top: 30, bottom: 30 },
+  },
+};
+
 const objs = {
   spike: {
     image: spikeImage,
     objType: "hazard",
-    hitbox: { top: 35, bottom: 5, left: 30, right: 30 },
+    hitbox: { top: 37, bottom: 5, left: 30, right: 30 },
     width: 1,
     height: 1,
   },
   wavePortal: {
     image: wavePortalImage,
     objType: "portal",
+    gamemode: "wave",
     portalHitbox: { top: 0, bottom: 0, left: 0, right: 0 },
     width: 1,
     height: 2,
@@ -63,14 +77,21 @@ const objs = {
     objType: "block",
     slideHitbox: { top: 0, bottom: 80, left: 0, right: 0 },
     hitbox: { top: 0, bottom: 0, left: 0, right: 0 },
+    width: 1,
+    height: 1,
   },
 };
+
+// for (let obj of level1) {
+//   obj.originalPos.x -= 25;
+// }
 
 let currentAttempt;
 let currentBackground;
 let currentGround;
 let currentPlayer;
 
+let lastDistanceMovedWhenRendered;
 function nextTick() {
   //console.log(currentPlayer.angle);
   //console.log(currentPlayer.hitbox);
@@ -87,7 +108,11 @@ function nextTick() {
   }
   //console.log(currentAttempt.tick);
   currentAttempt.distanceMoved = currentAttempt.tick * currentAttempt.speed;
-  if (currentAttempt.tick % 60 == 0 || currentAttempt.tick < 50) {
+  if (
+    currentAttempt.distanceMoved - lastDistanceMovedWhenRendered > gridLength ||
+    currentAttempt.tick < 50
+  ) {
+    lastDistanceMovedWhenRendered = currentAttempt.distanceMoved;
     currentAttempt.renderNextGroup();
     currentAttempt.unrenderNextGroup();
     currentPlayer.unrenderNextWaveTrails();
@@ -121,27 +146,33 @@ function animate() {
   currentBackground.draw();
   for (let ob of currentAttempt.renderedHazards) {
     ob.draw();
-    ob.drawHitboxes();
   }
   for (let ob of currentAttempt.renderedBlocks) {
     ob.draw();
-    ob.drawHitboxes();
   }
   for (let ob of currentAttempt.renderedPortals) {
-    ob.draw();
+    ob.drawLeftHalf();
+  }
+  for (let ob of currentAttempt.renderedHazards) {
     ob.drawHitboxes();
   }
-  currentPlayer.draw();
-  currentPlayer.checkExplosion();
+  for (let ob of currentAttempt.renderedBlocks) {
+    ob.drawHitboxes();
+  }
 
+  currentPlayer.draw();
+
+  for (let ob of currentAttempt.renderedPortals) {
+    ob.drawRightHalf();
+    ob.drawHitboxes();
+  }
   currentPlayer.drawHitboxes();
+
   currentGround.draw();
+  currentPlayer.checkExplosion();
 }
 
 function drawHitbox({ color, opacity, x, y, width, height }) {
-  if (color == "forestGreen") console.log(x);
-
-  if (color == "green") console.log(x);
   c.fillStyle = color;
   c.globalAlpha = opacity;
 
@@ -182,13 +213,13 @@ function death() {
 }
 
 function startAttempt() {
-  currentAttempt = new Attempt(level1, 8.7);
+  currentAttempt = new Attempt(level1, 8.7, "cube");
   currentAttempt.att = 1;
   currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
   currentAttempt.startTime = Date.now();
   currentBackground = new Background(backgroundImage);
   currentGround = new Ground(groundImage);
-  currentPlayer = new Player(cubeImage, waveImage, "cube");
+  currentPlayer = new Player();
   currentAttempt.copyObjs();
   currentAttempt.renderNextGroup();
 
@@ -221,6 +252,11 @@ document.addEventListener("keydown", (e) => {
   if (e.key == "r") {
     newAttempt(currentAttempt.intervalID);
   }
+
+  if (e.key == "p") {
+    console.table(currentPlayer.renderedWaveTrails);
+    clearInterval(currentAttempt.intervalID);
+  }
 });
 
 document.addEventListener("keyup", (e) => {
@@ -228,3 +264,12 @@ document.addEventListener("keyup", (e) => {
     currentPlayer.holding = false;
   }
 });
+
+let testSpikeData = {
+  type: "spike",
+  position: {
+    x: 3,
+    y: 1,
+  },
+};
+let testSpike = new Hazard(testSpikeData);

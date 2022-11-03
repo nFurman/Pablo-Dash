@@ -1,5 +1,5 @@
 class Obj {
-  constructor({ type, originalPos, rotation, size = 1 }) {
+  constructor({ type, originalPos, rotation = 0, size = 1 }) {
     this.image = objs[type].image;
     this.size = gridLength * size;
     this.height = this.size * objs[type].height;
@@ -18,21 +18,66 @@ class Obj {
   }
 
   draw() {
-    c.drawImage(
-      this.image,
-      this.pos.x,
-      canvas.height - this.pos.y - currentGround.y,
-      this.width,
-      this.height
-    );
+    if (this.rotation === 0) {
+      c.drawImage(
+        this.image,
+        this.pos.x,
+        canvas.height - this.pos.y - currentGround.y,
+        this.width,
+        this.height
+      );
+    } else {
+      let translateX = this.pos.x + this.width / 2;
+      let translateY =
+        canvas.height - this.pos.y - currentGround.y + this.height / 2;
+      c.translate(translateX, translateY);
+      c.rotate(-this.rotation);
+      c.drawImage(
+        this.image,
+        -this.width / 2,
+        -this.height / 2,
+        this.width,
+        this.height
+      );
+      c.rotate(this.rotation);
+      c.translate(-translateX, -translateY);
+    }
   }
 }
 
 class Obstacle extends Obj {
-  constructor({ type, originalPos, rotation }) {
+  constructor({ type, originalPos, rotation = 0 }) {
     super({ type, originalPos, rotation });
-
-    this.hitbox = JSON.parse(JSON.stringify(objs[type].hitbox));
+    switch (rotation) {
+      case 0:
+        console.log("test");
+        this.hitbox = JSON.parse(JSON.stringify(objs[type].hitbox));
+        break;
+      case 0.5 * Math.PI:
+        this.hitbox = {
+          left: objs[type].hitbox.top,
+          top: objs[type].hitbox.right,
+          right: objs[type].hitbox.bottom,
+          bottom: objs[type].hitbox.left,
+        };
+        break;
+      case Math.PI:
+        this.hitbox = {
+          left: objs[type].hitbox.right,
+          top: objs[type].hitbox.bottom,
+          right: objs[type].hitbox.left,
+          bottom: objs[type].hitbox.top,
+        };
+        break;
+      case 1.5 * Math.PI:
+        this.hitbox = {
+          left: objs[type].hitbox.bottom,
+          top: objs[type].hitbox.left,
+          right: objs[type].hitbox.top,
+          bottom: objs[type].hitbox.right,
+        };
+        break;
+    }
     this.hitbox.left *= this.width / 100;
     this.hitbox.right *= this.width / 100;
     this.hitbox.top *= this.height / 100;
@@ -106,7 +151,7 @@ class Block extends Obstacle {
       return;
     }
     super.drawHitboxes();
-
+    return;
     drawHitbox({
       color: "blue",
       opacity: 0.7,
@@ -186,11 +231,9 @@ class Block extends Obstacle {
 }
 
 class Player {
-  constructor(cubeImage, waveImage, gamemode) {
-    this.cubeImage = cubeImage;
-    this.waveImage = waveImage;
-    this.changeGamemode(gamemode);
+  constructor() {
     this.sideLength = 73;
+    this.spawnInGamemode(currentAttempt.startingGamemode);
     this.pos = {
       y: this.sideLength,
       x: 4.7 * gridLength,
@@ -216,12 +259,12 @@ class Player {
   }
 
   reset() {
-    //this.changeGamemode("cube");
     this.pos = {
       y: this.sideLength,
       x: 4.7 * gridLength,
     };
     this.angle = 0;
+    this.spawnInGamemode(currentAttempt.startingGamemode);
     this.jump = {
       isJumping: false,
     };
@@ -241,31 +284,37 @@ class Player {
 
   changeGamemode(gamemode) {
     this.gamemode = gamemode;
-    switch (this.gamemode) {
-      case "cube":
-        this.image = this.cubeImage;
-        this.hitbox = {
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-        };
-        this.hitboxForBlocks = {
-          left: 0,
-          right: 0,
-          top: 20,
-          bottom: 20,
-        };
-        break;
-      case "wave":
-        this.image = this.waveImage;
-        this.hitbox = {
-          left: 0,
-          right: 25,
-          top: 20,
-          bottom: 20,
-        };
-        break;
+    this.image = gamemodes[gamemode].image;
+    this.hitbox = JSON.parse(JSON.stringify(gamemodes[gamemode].hitbox));
+    for (let hb in this.hitbox) {
+      this.hitbox[hb] *= this.sideLength / 100;
+    }
+    this.hitboxForBlocks = JSON.parse(
+      JSON.stringify(gamemodes[gamemode].hitboxForBlocks)
+    );
+    for (let hb in this.hitboxForBlocks) {
+      this.hitboxForBlocks[hb] *= this.sideLength / 100;
+    }
+    this.jump.isJumping = false;
+    while (currentAttempt.renderedWaveTrails.length > 0) {
+      console.log("deletingre");
+      currentAttempt.renderedWaveTrails.shift();
+    }
+    this.doFall();
+  }
+
+  spawnInGamemode(gamemode) {
+    this.gamemode = gamemode;
+    this.image = gamemodes[gamemode].image;
+    this.hitbox = JSON.parse(JSON.stringify(gamemodes[gamemode].hitbox));
+    for (let hb in this.hitbox) {
+      this.hitbox[hb] *= this.sideLength / 100;
+    }
+    this.hitboxForBlocks = JSON.parse(
+      JSON.stringify(gamemodes[gamemode].hitboxForBlocks)
+    );
+    for (let hb in this.hitboxForBlocks) {
+      this.hitboxForBlocks[hb] *= this.sideLength / 100;
     }
   }
 
@@ -277,6 +326,7 @@ class Player {
         startHeight: this.jump.heightStarted,
         angle: Math.PI / 4,
         endDistanceMoved: currentAttempt.distanceMoved,
+        endHeight: this.pos.y,
       });
     }
     this.slide.isSliding = false;
@@ -291,23 +341,23 @@ class Player {
 
   doJump() {
     //console.log("jumpin");
-    if (this.gamemode === "wave") {
-      if (this.fall.isFalling) {
-        this.renderedWaveTrails.push({
-          startDistanceMoved: this.fall.tickStarted * currentAttempt.speed,
-          startHeight: this.fall.heightStarted,
-          angle: -Math.PI / 4,
-          endDistanceMoved: currentAttempt.distanceMoved,
-        });
-      }
-      if (this.slide.isSliding) {
-        this.renderedWaveTrails.push({
-          startDistanceMoved: this.slide.tickStarted * currentAttempt.speed,
-          startHeight: this.slide.height + this.sideLength - this.hitbox.bottom,
-          angle: 0,
-          endDistanceMoved: currentAttempt.distanceMoved,
-        });
-      }
+    if (this.gamemode === "wave" && this.fall.isFalling) {
+      this.renderedWaveTrails.push({
+        startDistanceMoved: this.fall.tickStarted * currentAttempt.speed,
+        startHeight: this.fall.heightStarted,
+        angle: -Math.PI / 4,
+        endDistanceMoved: currentAttempt.distanceMoved,
+        endHeight: this.pos.y,
+      });
+    }
+    if (this.slide.isSliding) {
+      this.renderedWaveTrails.push({
+        startDistanceMoved: this.slide.tickStarted * currentAttempt.speed,
+        startHeight: this.slide.height + this.sideLength - this.hitbox.bottom,
+        angle: 0,
+        endDistanceMoved: currentAttempt.distanceMoved,
+        endHeight: this.pos.y,
+      });
     }
     this.slide.isSliding = false;
     this.fall.isFalling = false;
@@ -359,6 +409,7 @@ class Player {
         startHeight: this.fall.heightStarted,
         angle: -Math.PI / 4,
         endDistanceMoved: currentAttempt.distanceMoved,
+        endHeight: y + this.sideLength - this.hitbox.bottom,
       });
     }
     this.pos.y = this.sideLength - this.hitbox.bottom + y;
@@ -493,25 +544,31 @@ class Player {
   }
 
   updateStatus() {
-    if (this.pos.y <= this.sideLength - this.hitbox.bottom) {
-      if (!this.slide.isSliding) {
-        this.land(0);
-      }
-    } else {
-      let wasSliding = false;
-      if (this.slide.isSliding) {
-        wasSliding = true;
-      }
+    for (let portal of currentAttempt.renderedPortals) {
+      portal.checkPortaling();
+    }
+    if (this.gamemode === "cube") {
+      if (this.pos.y <= this.sideLength - this.hitbox.bottom) {
+        if (!this.slide.isSliding) {
+          this.land(0);
+        }
+      } else {
+        let wasSliding = false;
+        if (this.slide.isSliding) {
+          wasSliding = true;
+        }
 
-      currentAttempt.checkSliding();
+        currentAttempt.checkSliding();
 
-      if (wasSliding && !this.slide.isSliding) {
-        this.doFall();
-      } else if (!wasSliding && this.slide.isSliding) {
-        this.land(this.slide.height);
+        if (wasSliding && !this.slide.isSliding) {
+          this.doFall();
+        } else if (!wasSliding && this.slide.isSliding) {
+          this.land(this.slide.height);
+        }
       }
     }
   }
+
   unrenderNextWaveTrails() {
     for (let i = this.renderedWaveTrails.length - 1; i >= 0; i--) {
       if (
@@ -541,25 +598,37 @@ class Player {
     if (this.gamemode === "wave") {
       c.fillStyle = "#FFF";
       for (let trail of this.renderedWaveTrails) {
+        let wavePulseExpression =
+          (0.5 / Math.sqrt(2)) * gridLength * this.wavePulse;
+
         let translateX =
           this.pos.x -
           currentAttempt.distanceMoved +
           trail.startDistanceMoved -
-          0.5 * this.hitbox.left +
-          0.5 * (this.sideLength - this.hitbox.right);
+          currentAttempt.speed +
+          (0.5 / Math.sqrt(2)) * gridLength;
         let translateY =
           canvas.height -
           trail.startHeight -
-          currentGround.y -
-          Math.tan(trail.angle) * currentAttempt.speed +
+          currentGround.y +
+          //-Math.tan(trail.angle) * currentAttempt.speed * (tps / 60) +
           this.sideLength / 2;
         let length =
-          (trail.endDistanceMoved - trail.startDistanceMoved) /
-          Math.cos(trail.angle);
+          Math.sqrt(
+            (trail.endHeight - trail.startHeight) *
+              (trail.endHeight - trail.startHeight) +
+              (trail.endDistanceMoved - trail.startDistanceMoved) *
+                (trail.endDistanceMoved - trail.startDistanceMoved)
+          ) +
+          //(trail.endDistanceMoved - trail.startDistanceMoved) /
+          //Math.cos(trail.angle) +
+          gridLength * this.wavePulse * 0.86;
+        //this is bad as fuck i dont know why 0.86 is the constant that works
         c.translate(translateX, translateY);
         c.rotate(-trail.angle);
         c.fillRect(
-          -0.5 * this.hitbox.left - 0.5 * (this.sideLength - this.hitbox.right),
+          //-0.5 * this.hitbox.left - 0.5 * (this.sideLength - this.hitbox.right),
+          -wavePulseExpression,
           -(gridLength * this.wavePulse) / 2,
           length,
           gridLength * this.wavePulse
@@ -587,27 +656,34 @@ class Player {
       }
       c.fillStyle = "#FFF";
       if (this.jump.isJumping) {
+        let wavePulseExpression =
+          (0.5 / Math.sqrt(2)) * gridLength * this.wavePulse;
+
         let translateX =
           this.pos.x -
           currentAttempt.distanceMoved +
-          this.jump.tickStarted * currentAttempt.speed +
+          (this.jump.tickStarted - 1) * currentAttempt.speed +
+          (0.5 / Math.sqrt(2)) * gridLength;
+        /*
           0.5 * this.hitbox.left +
           0.5 * (this.sideLength - this.hitbox.right);
+          */
         let translateY =
           canvas.height -
           currentGround.y -
-          this.jump.heightStarted -
-          Math.tan(Math.PI / 4) * currentAttempt.speed +
+          this.jump.heightStarted +
+          //-Math.tan(Math.PI / 4) * currentAttempt.speed +
           this.sideLength / 2;
+        //wavePulseExpression;
         let length =
           (currentAttempt.distanceMoved -
-            this.jump.tickStarted * currentAttempt.speed) *
-            Math.sqrt(2) +
-          this.sideLength / 2;
+            (this.jump.tickStarted - 1) * currentAttempt.speed) *
+          Math.sqrt(2);
         c.translate(translateX, translateY);
         c.rotate(-Math.PI / 4);
         c.fillRect(
-          -0.5 * this.hitbox.left - 0.5 * (this.sideLength - this.hitbox.right),
+          //-0.5 * this.hitbox.left - 0.5 * (this.sideLength - this.hitbox.right),
+          -wavePulseExpression,
           -(gridLength * this.wavePulse) / 2,
           length,
           gridLength * this.wavePulse
@@ -617,27 +693,34 @@ class Player {
       }
 
       if (this.fall.isFalling) {
+        let wavePulseExpression =
+          (0.5 / Math.sqrt(2)) * gridLength * this.wavePulse;
+
         let translateX =
           this.pos.x -
           currentAttempt.distanceMoved +
-          this.fall.tickStarted * currentAttempt.speed +
+          (this.fall.tickStarted - 1) * currentAttempt.speed +
+          (0.5 / Math.sqrt(2)) * gridLength;
+        /*
+          +
           0.5 * this.hitbox.left +
           0.5 * (this.sideLength - this.hitbox.right);
+          */
         let translateY =
           canvas.height -
           currentGround.y -
-          this.fall.heightStarted -
-          +Math.tan(-Math.PI / 4) * currentAttempt.speed +
+          this.fall.heightStarted +
+          //-Math.tan(-Math.PI / 4) * currentAttempt.speed +
           this.sideLength / 2;
         let length =
           (currentAttempt.distanceMoved -
-            this.fall.tickStarted * currentAttempt.speed) *
-            Math.sqrt(2) +
-          this.sideLength / 2;
+            (this.fall.tickStarted - 1) * currentAttempt.speed) *
+          Math.sqrt(2);
         c.translate(translateX, translateY);
         c.rotate(Math.PI / 4);
         c.fillRect(
-          -0.5 * this.hitbox.left - 0.5 * (this.sideLength - this.hitbox.right),
+          //-0.5 * this.hitbox.left - 0.5 * (this.sideLength - this.hitbox.right),
+          -wavePulseExpression,
           -(gridLength * this.wavePulse) / 2,
           length,
           gridLength * this.wavePulse
@@ -650,7 +733,9 @@ class Player {
         c.fillRect(
           this.pos.x -
             currentAttempt.distanceMoved +
-            this.slide.tickStarted * currentAttempt.speed,
+            this.slide.tickStarted * currentAttempt.speed +
+            0.5 * this.hitbox.left +
+            0.5 * (this.sideLength - this.hitbox.right),
           canvas.height -
             currentGround.y -
             this.slide.height +
@@ -803,6 +888,34 @@ class Portal extends Obj {
     this.portalHitbox = JSON.parse(JSON.stringify(objs[type].portalHitbox));
   }
 
+  drawLeftHalf() {
+    c.drawImage(
+      this.image,
+      0,
+      0,
+      this.image.width / 2,
+      this.image.height,
+      this.pos.x,
+      canvas.height - this.pos.y - currentGround.y,
+      this.width / 2,
+      this.height
+    );
+  }
+
+  drawRightHalf() {
+    c.drawImage(
+      this.image,
+      this.image.width / 2,
+      0,
+      this.image.width / 2,
+      this.image.height,
+      this.pos.x + this.width / 2,
+      canvas.height - this.pos.y - currentGround.y,
+      this.width / 2,
+      this.height
+    );
+  }
+
   drawHitboxes() {
     if (!this.hitboxesShown) {
       return;
@@ -815,6 +928,34 @@ class Portal extends Obj {
       width: this.width - this.portalHitbox.left - this.portalHitbox.right,
       height: this.height - this.portalHitbox.top - this.portalHitbox.bottom,
     });
+  }
+
+  checkPortaling() {
+    if (currentPlayer.gamemode === objs[this.type].gamemode) return;
+    if (
+      checkCollision(
+        {
+          x: currentPlayer.pos.x + currentPlayer.hitbox.left,
+          y: currentPlayer.pos.y - currentPlayer.hitbox.top,
+          width:
+            currentPlayer.sideLength -
+            currentPlayer.hitbox.left -
+            currentPlayer.hitbox.right,
+          height:
+            currentPlayer.sideLength -
+            currentPlayer.hitbox.bottom -
+            currentPlayer.hitbox.top,
+        },
+        {
+          x: this.pos.x + this.portalHitbox.left,
+          y: this.pos.y - this.portalHitbox.top,
+          width: this.width - this.portalHitbox.left - this.portalHitbox.right,
+          height: this.width - this.portalHitbox.bottom - this.portalHitbox.top,
+        }
+      )
+    ) {
+      currentPlayer.changeGamemode(objs[this.type].gamemode);
+    }
   }
 }
 
@@ -910,19 +1051,21 @@ class Ground {
 }
 
 class Attempt {
-  constructor(levelObjs, startingSpeed) {
+  constructor(levelObjs, startingSpeed, startingGamemode) {
     this.levelObjs = levelObjs;
     this.distanceMoved = 0;
     this.att = 1;
     this.tick = 0;
     this.speedSetting = startingSpeed;
     this.speed = startingSpeed * (60 / tps) * (gridLength / 50);
+    this.startingGamemode = startingGamemode;
 
     this.currentObjs;
 
     this.renderedHazards = [];
     this.renderedBlocks = [];
     this.renderedPortals = [];
+    this.renderedWaveTrails = [];
 
     this.objHitboxesShown = false;
   }
@@ -974,7 +1117,7 @@ class Attempt {
             break;
         }
         ob.hasBeenRendered = true;
-        console.log("rendered a " + ob.type);
+        //console.log("rendered a " + ob.type);
       }
     }
   }
@@ -994,7 +1137,7 @@ class Attempt {
   unrenderNextGroup() {
     if (this.renderedBlocks.length !== 0) {
       while (this.renderedBlocks[0].pos.x < -100) {
-        console.log("unrendering " + this.renderedBlocks[0].type);
+        //console.log("unrendering " + this.renderedBlocks[0].type);
         this.renderedBlocks.shift();
         if (this.renderedBlocks.length === 0) {
           break;
@@ -1003,7 +1146,7 @@ class Attempt {
     }
     if (this.renderedHazards.length !== 0) {
       while (this.renderedHazards[0].pos.x < -100) {
-        console.log("unrendering " + this.renderedHazards[0].type);
+        //console.log("unrendering " + this.renderedHazards[0].type);
         this.renderedHazards.shift();
         if (this.renderedHazards.length === 0) {
           break;
@@ -1012,9 +1155,9 @@ class Attempt {
     }
     if (this.renderedPortals.length !== 0) {
       while (this.renderedPortals[0].pos.x < -100) {
-        console.log("unrendering " + this.renderedPortals[0].type);
+        //console.log("unrendering " + this.renderedPortals[0].type);
         this.renderedPortals.shift();
-        if (this.renderedPortalss.length === 0) {
+        if (this.renderedPortals.length === 0) {
           break;
         }
       }
