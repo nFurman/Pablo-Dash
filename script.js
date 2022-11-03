@@ -8,7 +8,7 @@ const tau = 2 * Math.PI;
 
 const deathSound = new Audio("resources/explode_11.mp3");
 
-let tps = 600;
+let tps = 300;
 
 let gridLength = 73;
 
@@ -53,7 +53,7 @@ const objs = {
   spike: {
     image: spikeImage,
     objType: "hazard",
-    hitbox: { top: 37, bottom: 5, left: 30, right: 30 },
+    hitbox: { top: 38, bottom: 5, left: 30, right: 30 },
     width: 1,
     height: 1,
   },
@@ -67,6 +67,7 @@ const objs = {
   },
   cubePortal: {
     objType: "portal",
+    gamemode: "cube",
     image: cubePortalImage,
     portalHitbox: { top: 0, bottom: 0, left: 0, right: 0 },
     width: 1,
@@ -82,7 +83,7 @@ const objs = {
   },
 };
 
-// for (let obj of level1) {
+// for (let obj of careening_cosmonaut) {
 //   obj.originalPos.x -= 25;
 // }
 
@@ -134,7 +135,7 @@ function nextTick() {
 
   currentPlayer.updateStatus();
   currentPlayer.updatePosition();
-  currentPlayer.checkDeath();
+  if (!currentPlayer.noclip) currentPlayer.checkDeath();
 
   currentBackground.updatePosition();
   currentGround.updatePosition();
@@ -194,9 +195,7 @@ function checkCollision(rect1, rect2) {
 }
 function death() {
   console.log("broooooo");
-
-  currentAttempt.showObjHitboxes();
-  currentPlayer.hitboxesShown = true;
+  currentPlayer.isDead = true;
 
   //console.log(currentAttempt.renderedBlocks, currentAttempt.renderedHazards);
   //console.log(currentAttempt.intervalID);
@@ -213,7 +212,7 @@ function death() {
 }
 
 function startAttempt() {
-  currentAttempt = new Attempt(level1, 8.7, "cube");
+  currentAttempt = new Attempt(testingGroundLevel, 8.7, "cube");
   currentAttempt.att = 1;
   currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
   currentAttempt.startTime = Date.now();
@@ -251,6 +250,10 @@ document.addEventListener("keydown", (e) => {
   }
   if (e.key == "r") {
     newAttempt(currentAttempt.intervalID);
+  }
+
+  if (e.key == "n") {
+    currentPlayer.noclip = !currentPlayer.noclip;
   }
 
   if (e.key == "p") {

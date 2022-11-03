@@ -2,12 +2,28 @@ class Obj {
   constructor({ type, originalPos, rotation = 0, size = 1 }) {
     this.image = objs[type].image;
     this.size = gridLength * size;
-    this.height = this.size * objs[type].height;
-    this.width = this.size * objs[type].width;
+    this.rotation = rotation * Math.PI;
+    switch (this.rotation) {
+      case 0:
+        this.height = this.size * objs[type].height;
+        this.width = this.size * objs[type].width;
+        break;
+      case 0.5 * Math.PI:
+        this.height = this.size * objs[type].width;
+        this.width = this.size * objs[type].height;
+        break;
+      case 1 * Math.PI:
+        this.height = this.size * objs[type].height;
+        this.width = this.size * objs[type].width;
+        break;
+      case 1.5 * Math.PI:
+        this.height = this.size * objs[type].width;
+        this.width = this.size * objs[type].height;
+      default:
+    }
     this.type = type;
     this.originalPos = originalPos;
     this.pos = { ...originalPos };
-    this.rotation = rotation;
     this.hitboxesShown = false;
   }
 
@@ -48,9 +64,8 @@ class Obj {
 class Obstacle extends Obj {
   constructor({ type, originalPos, rotation = 0 }) {
     super({ type, originalPos, rotation });
-    switch (rotation) {
+    switch (this.rotation) {
       case 0:
-        console.log("test");
         this.hitbox = JSON.parse(JSON.stringify(objs[type].hitbox));
         break;
       case 0.5 * Math.PI:
@@ -114,7 +129,9 @@ class Obstacle extends Obj {
   }
 
   drawHitboxes() {
-    if (!this.hitboxesShown) {
+    if (
+      !(this.hitboxesShown || (currentPlayer.isDead && currentAttempt.shod))
+    ) {
       return;
     }
     drawHitbox({
@@ -147,7 +164,9 @@ class Block extends Obstacle {
   }
 
   drawHitboxes() {
-    if (!this.hitboxesShown) {
+    if (
+      !(this.hitboxesShown || (currentPlayer.isDead && currentAttempt.shod))
+    ) {
       return;
     }
     super.drawHitboxes();
@@ -236,7 +255,7 @@ class Player {
     this.spawnInGamemode(currentAttempt.startingGamemode);
     this.pos = {
       y: this.sideLength,
-      x: 4.7 * gridLength,
+      x: 6.5 * gridLength,
     };
     this.angle = 0;
     this.jump = {
@@ -250,18 +269,20 @@ class Player {
       height: this.pos.y - this.sideLength,
     };
     this.renderedWaveTrails = [];
-    this.wavePulse = 0.1;
+    this.wavePulse = 0.3;
     this.isExploding = false;
     this.explosion = {};
     this.holding = false;
     this.show = true;
     this.hitboxesShown = false;
+    this.isDead = false;
+    this.noclip = false;
   }
 
   reset() {
     this.pos = {
       y: this.sideLength,
-      x: 4.7 * gridLength,
+      x: 6.5 * gridLength,
     };
     this.angle = 0;
     this.spawnInGamemode(currentAttempt.startingGamemode);
@@ -279,7 +300,7 @@ class Player {
     this.isExploding = false;
     this.explosion = {};
     this.show = true;
-    this.hitboxesShown = false;
+    this.isDead = false;
   }
 
   changeGamemode(gamemode) {
@@ -300,7 +321,11 @@ class Player {
       console.log("deletingre");
       currentAttempt.renderedWaveTrails.shift();
     }
-    this.doFall();
+    if (gamemode != "cube") {
+      this.doFall();
+    } else {
+      this.doFall("max");
+    }
   }
 
   spawnInGamemode(gamemode) {
@@ -318,7 +343,7 @@ class Player {
     }
   }
 
-  doFall() {
+  doFall(fallSpeed) {
     console.log("fallin");
     if (this.gamemode === "wave" && this.jump.isJumping) {
       this.renderedWaveTrails.push({
@@ -336,6 +361,7 @@ class Player {
       tickStarted: currentAttempt.tick,
       heightStarted: this.pos.y,
       angleStarted: this.angle,
+      startSpeed: fallSpeed,
     };
   }
 
@@ -466,17 +492,22 @@ class Player {
         if (this.fall.isFalling) {
           let fallProgress =
             (currentAttempt.tick + 1 - this.fall.tickStarted) * (60 / 26 / tps);
-          if (fallProgress < 0.6) {
+          if (this.fall.startSpeed === "max") {
             this.pos.y =
-              this.fall.heightStarted -
-              8 * gridLength * fallProgress * fallProgress;
+              this.fall.heightStarted + gridLength * (-9.6 * fallProgress);
           } else {
-            this.pos.y =
-              this.fall.heightStarted +
-              gridLength * (-9.6 * fallProgress + 2.86);
-          }
-          if (this.pos.y <= this.sideLength) {
-            this.land(0);
+            if (fallProgress < 0.6) {
+              this.pos.y =
+                this.fall.heightStarted -
+                8 * gridLength * fallProgress * fallProgress;
+            } else {
+              this.pos.y =
+                this.fall.heightStarted +
+                gridLength * (-9.6 * fallProgress + 2.86);
+            }
+            if (this.pos.y <= this.sideLength) {
+              this.land(0);
+            }
           }
         }
         break;
@@ -805,7 +836,7 @@ class Player {
     }
   }
   drawHitboxes() {
-    if (!this.hitboxesShown) {
+    if (!(this.hitboxesShown || (this.isDead && currentAttempt.shod))) {
       return;
     }
 
@@ -885,39 +916,205 @@ class Explosion {
 class Portal extends Obj {
   constructor({ type, originalPos, rotation }) {
     super({ type, originalPos, rotation });
-    this.portalHitbox = JSON.parse(JSON.stringify(objs[type].portalHitbox));
+    switch (this.rotation) {
+      case 0:
+        this.portalHitbox = JSON.parse(JSON.stringify(objs[type].portalHitbox));
+        break;
+      case 0.5 * Math.PI:
+        this.portalHitbox = {
+          left: objs[type].portalHitbox.top,
+          top: objs[type].portalHitbox.right,
+          right: objs[type].portalHitbox.bottom,
+          bottom: objs[type].portalHitbox.left,
+        };
+        break;
+      case Math.PI:
+        this.portalHitbox = {
+          left: objs[type].portalHitbox.right,
+          top: objs[type].portalHitbox.bottom,
+          right: objs[type].portalHitbox.left,
+          bottom: objs[type].portalHitbox.top,
+        };
+        break;
+      case 1.5 * Math.PI:
+        this.portalHitbox = {
+          left: objs[type].portalHitbox.bottom,
+          top: objs[type].portalHitbox.left,
+          right: objs[type].portalHitbox.top,
+          bottom: objs[type].portalHitbox.right,
+        };
+        break;
+    }
+    this.portalHitbox.left *= this.width / 100;
+    this.portalHitbox.right *= this.width / 100;
+    this.portalHitbox.top *= this.height / 100;
+    this.portalHitbox.bottom *= this.height / 100;
   }
 
   drawLeftHalf() {
-    c.drawImage(
-      this.image,
-      0,
-      0,
-      this.image.width / 2,
-      this.image.height,
-      this.pos.x,
-      canvas.height - this.pos.y - currentGround.y,
-      this.width / 2,
-      this.height
-    );
+    let translateX;
+    let translateY;
+    switch (this.rotation) {
+      case 0:
+        c.drawImage(
+          this.image,
+          0,
+          0,
+          this.image.width / 2,
+          this.image.height,
+          this.pos.x,
+          canvas.height - this.pos.y - currentGround.y,
+          this.width / 2,
+          this.height
+        );
+        break;
+      case 1.5 * Math.PI:
+        translateX = this.pos.x + this.width / 2;
+        translateY =
+          canvas.height - this.pos.y - currentGround.y + this.height / 4;
+        c.translate(translateX, translateY);
+        c.rotate(-this.rotation);
+        c.drawImage(
+          this.image,
+          0,
+          0,
+          this.image.width / 2,
+          this.image.height,
+          -this.width / 8,
+          -this.height,
+          this.height / 2,
+          this.width
+        );
+        c.rotate(this.rotation);
+        c.translate(-translateX, -translateY);
+        break;
+      case Math.PI:
+        translateX = this.pos.x + 0.75 * this.width;
+        translateY =
+          canvas.height - this.pos.y - currentGround.y + 0.5 * this.height;
+        c.translate(translateX, translateY);
+        c.rotate(-this.rotation);
+        c.drawImage(
+          this.image,
+          0,
+          0,
+          this.image.width / 2,
+          this.image.height,
+          -this.width / 4,
+          -this.height / 2,
+          this.width / 2,
+          this.height
+        );
+        c.rotate(this.rotation);
+        c.translate(-translateX, -translateY);
+        break;
+      case 0.5 * Math.PI:
+        translateX = this.pos.x + this.width / 2;
+        translateY =
+          canvas.height - this.pos.y - currentGround.y + 0.75 * this.height;
+        c.translate(translateX, translateY);
+        c.rotate(-this.rotation);
+        c.drawImage(
+          this.image,
+          0,
+          0,
+          this.image.width / 2,
+          this.image.height,
+          -this.width / 8,
+          -this.height,
+          this.height / 2,
+          this.width
+        );
+        c.rotate(this.rotation);
+        c.translate(-translateX, -translateY);
+        break;
+    }
   }
 
   drawRightHalf() {
-    c.drawImage(
-      this.image,
-      this.image.width / 2,
-      0,
-      this.image.width / 2,
-      this.image.height,
-      this.pos.x + this.width / 2,
-      canvas.height - this.pos.y - currentGround.y,
-      this.width / 2,
-      this.height
-    );
+    let translateX;
+    let translateY;
+    switch (this.rotation) {
+      case 0:
+        c.drawImage(
+          this.image,
+          this.image.width / 2,
+          0,
+          this.image.width / 2,
+          this.image.height,
+          this.pos.x + this.width / 2,
+          canvas.height - this.pos.y - currentGround.y,
+          this.width / 2,
+          this.height
+        );
+        break;
+      case 1.5 * Math.PI:
+        translateX = this.pos.x + this.width / 2;
+        translateY =
+          canvas.height - this.pos.y - currentGround.y + 0.75 * this.height;
+        c.translate(translateX, translateY);
+        c.rotate(-this.rotation);
+        c.drawImage(
+          this.image,
+          this.image.width / 2,
+          0,
+          this.image.width / 2,
+          this.image.height,
+          -this.width / 8,
+          -this.height,
+          this.height / 2,
+          this.width
+        );
+        c.rotate(this.rotation);
+        c.translate(-translateX, -translateY);
+        break;
+      case Math.PI:
+        translateX = this.pos.x + 0.25 * this.width;
+        translateY =
+          canvas.height - this.pos.y - currentGround.y + 0.5 * this.height;
+        c.translate(translateX, translateY);
+        c.rotate(-this.rotation);
+        c.drawImage(
+          this.image,
+          this.image.width / 2,
+          0,
+          this.image.width / 2,
+          this.image.height,
+          -this.width / 4,
+          -this.height / 2,
+          this.width / 2,
+          this.height
+        );
+        c.rotate(this.rotation);
+        c.translate(-translateX, -translateY);
+        break;
+      case 0.5 * Math.PI:
+        translateX = this.pos.x + this.width / 2;
+        translateY =
+          canvas.height - this.pos.y - currentGround.y + 0.25 * this.height;
+        c.translate(translateX, translateY);
+        c.rotate(-this.rotation);
+        c.drawImage(
+          this.image,
+          this.image.width / 2,
+          0,
+          this.image.width / 2,
+          this.image.height,
+          -this.width / 8,
+          -this.height,
+          this.height / 2,
+          this.width
+        );
+        c.rotate(this.rotation);
+        c.translate(-translateX, -translateY);
+        break;
+    }
   }
 
   drawHitboxes() {
-    if (!this.hitboxesShown) {
+    if (
+      !(this.hitboxesShown || (currentPlayer.isDead && currentAttempt.shod))
+    ) {
       return;
     }
     drawHitbox({
@@ -1068,6 +1265,7 @@ class Attempt {
     this.renderedWaveTrails = [];
 
     this.objHitboxesShown = false;
+    this.shod = true;
   }
 
   copyObjs() {
@@ -1189,6 +1387,18 @@ class Attempt {
     }
     for (let ob of this.renderedPortals) {
       ob.hitboxesShown = true;
+    }
+  }
+
+  hideObjHitboxes() {
+    for (let ob of this.renderedBlocks) {
+      ob.hitboxesShown = false;
+    }
+    for (let ob of this.renderedHazards) {
+      ob.hitboxesShown = false;
+    }
+    for (let ob of this.renderedPortals) {
+      ob.hitboxesShown = false;
     }
   }
 }
