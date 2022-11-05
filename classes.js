@@ -38,7 +38,7 @@ class Obj {
       c.drawImage(
         this.image,
         this.pos.x,
-        canvas.height - this.pos.y - currentGround.y,
+        canvas.height - this.pos.y - currentGround.y + gridLength - this.height,
         this.width,
         this.height
       );
@@ -365,7 +365,7 @@ class Player {
     };
   }
 
-  doJump() {
+  doJump(colorType) {
     //console.log("jumpin");
     if (this.gamemode === "wave" && this.fall.isFalling) {
       this.renderedWaveTrails.push({
@@ -392,11 +392,12 @@ class Player {
       tickStarted: currentAttempt.tick,
       heightStarted: this.pos.y,
       angleStarted: this.angle,
+      type: colorType,
     };
   }
 
   land(y) {
-    console.log("landed");
+    //console.trace("landed");
     switch (this.gamemode) {
       case "cube":
         this.cubeLand(y);
@@ -473,20 +474,37 @@ class Player {
         }
         if (this.jump.isJumping) {
           //this.pos.y += (13.2 - this.airTime) / 1.1;
-          let jumpProgress =
-            (currentAttempt.tick + 1 - this.jump.tickStarted) * (60 / 26 / tps);
-          if (jumpProgress < 1.1) {
-            this.pos.y =
-              this.jump.heightStarted +
-              8 * gridLength * jumpProgress -
-              8 * gridLength * jumpProgress * jumpProgress;
+          if (this.jump.type === "yellow") {
+            let jumpProgress =
+              (currentAttempt.tick + 1 - this.jump.tickStarted) *
+              (60 / 26 / tps);
+            if (jumpProgress < 1.3) {
+              this.pos.y =
+                this.jump.heightStarted +
+                11.5 * gridLength * jumpProgress -
+                8 * gridLength * jumpProgress * jumpProgress;
+            } else {
+              this.pos.y =
+                this.jump.heightStarted +
+                gridLength * (-9.6 * jumpProgress + 13.9);
+            }
           } else {
-            this.pos.y =
-              this.jump.heightStarted +
-              gridLength * (-9.6 * jumpProgress + 9.5);
-          }
-          if (this.pos.y <= this.sideLength) {
-            this.land(0);
+            let jumpProgress =
+              (currentAttempt.tick + 1 - this.jump.tickStarted) *
+              (60 / 26 / tps);
+            if (jumpProgress < 1.1) {
+              this.pos.y =
+                this.jump.heightStarted +
+                8 * gridLength * jumpProgress -
+                8 * gridLength * jumpProgress * jumpProgress;
+            } else {
+              this.pos.y =
+                this.jump.heightStarted +
+                gridLength * (-9.6 * jumpProgress + 9.5);
+            }
+            if (this.pos.y <= this.sideLength) {
+              this.land(0);
+            }
           }
         }
         if (this.fall.isFalling) {
@@ -597,6 +615,9 @@ class Player {
           this.land(this.slide.height);
         }
       }
+    }
+    for (let portal of currentAttempt.renderedPads) {
+      portal.checkPadding();
     }
   }
 
@@ -913,6 +934,92 @@ class Explosion {
   }
 }
 
+class Pad extends Obj {
+  constructor({ type, originalPos, rotation }) {
+    super({ type, originalPos, rotation });
+    this.hasBeenUsed = false;
+    switch (this.rotation) {
+      case 0:
+        this.padHitbox = JSON.parse(JSON.stringify(objs[type].padHitbox));
+        break;
+      case 0.5 * Math.PI:
+        this.padHitbox = {
+          left: objs[type].padHitbox.top,
+          top: objs[type].padHitbox.right,
+          right: objs[type].padHitbox.bottom,
+          bottom: objs[type].padHitbox.left,
+        };
+        break;
+      case Math.PI:
+        this.padHitbox = {
+          left: objs[type].padHitbox.right,
+          top: objs[type].padHitbox.bottom,
+          right: objs[type].padHitbox.left,
+          bottom: objs[type].padHitbox.top,
+        };
+        break;
+      case 1.5 * Math.PI:
+        this.padHitbox = {
+          left: objs[type].padHitbox.bottom,
+          top: objs[type].padHitbox.left,
+          right: objs[type].padHitbox.top,
+          bottom: objs[type].padHitbox.right,
+        };
+        break;
+    }
+    this.padHitbox.left *= this.width / 100;
+    this.padHitbox.right *= this.width / 100;
+    this.padHitbox.top *= this.height / 100;
+    this.padHitbox.bottom *= this.height / 100;
+  }
+
+  drawHitboxes() {
+    if (
+      !(this.hitboxesShown || (currentPlayer.isDead && currentAttempt.shod))
+    ) {
+      return;
+    }
+    drawHitbox({
+      color: "green",
+      opacity: 0.7,
+      x: this.pos.x + this.padHitbox.left,
+      y: this.pos.y + currentGround.y - gridLength + this.height,
+      width: this.width - this.padHitbox.left - this.padHitbox.right,
+      height: this.height - this.padHitbox.top - this.padHitbox.bottom,
+    });
+  }
+
+  checkPadding() {
+    if (this.hasBeenUsed) return;
+    if (currentPlayer.gamemode === "wave") return;
+    if (
+      checkCollision(
+        {
+          x: currentPlayer.pos.x + currentPlayer.hitbox.left,
+          y: currentPlayer.pos.y - currentPlayer.hitbox.top,
+          width:
+            currentPlayer.sideLength -
+            currentPlayer.hitbox.left -
+            currentPlayer.hitbox.right,
+          height:
+            currentPlayer.sideLength -
+            currentPlayer.hitbox.bottom -
+            currentPlayer.hitbox.top,
+        },
+        {
+          x: this.pos.x + this.padHitbox.left,
+          y: this.pos.y - gridLength + this.height,
+          width: this.width - this.padHitbox.left - this.padHitbox.right,
+          height: this.height - this.padHitbox.bottom - this.padHitbox.top,
+        }
+      )
+    ) {
+      currentPlayer.doJump("yellow");
+      this.hasBeenUsed = true;
+    }
+  }
+}
+
 class Portal extends Obj {
   constructor({ type, originalPos, rotation }) {
     super({ type, originalPos, rotation });
@@ -1147,7 +1254,8 @@ class Portal extends Obj {
           x: this.pos.x + this.portalHitbox.left,
           y: this.pos.y - this.portalHitbox.top,
           width: this.width - this.portalHitbox.left - this.portalHitbox.right,
-          height: this.width - this.portalHitbox.bottom - this.portalHitbox.top,
+          height:
+            this.height - this.portalHitbox.bottom - this.portalHitbox.top,
         }
       )
     ) {
@@ -1262,6 +1370,7 @@ class Attempt {
     this.renderedHazards = [];
     this.renderedBlocks = [];
     this.renderedPortals = [];
+    this.renderedPads = [];
     this.renderedWaveTrails = [];
 
     this.objHitboxesShown = false;
@@ -1288,6 +1397,9 @@ class Attempt {
         case "portal":
           this.renderedPortals.push(new Portal(ob));
           break;
+        case "pad":
+          this.renderedPads.push(new Pad(ob));
+          break;
       }
       ob.hasBeenRendered = true;
     }
@@ -1313,9 +1425,11 @@ class Attempt {
           case "portal":
             this.renderedPortals.push(new Portal(ob));
             break;
+          case "pad":
+            this.renderedPads.push(new Pad(ob));
+            break;
         }
         ob.hasBeenRendered = true;
-        //console.log("rendered a " + ob.type);
       }
     }
   }
@@ -1329,6 +1443,9 @@ class Attempt {
     }
     while (this.renderedPortals.length > 0) {
       this.renderedPortals.shift();
+    }
+    while (this.renderedPads.length > 0) {
+      this.renderedPads.shift();
     }
   }
 
@@ -1360,6 +1477,15 @@ class Attempt {
         }
       }
     }
+    if (this.renderedPads.length !== 0) {
+      while (this.renderedPads[0].pos.x < -100) {
+        //console.log("unrendering " + this.renderedPortals[0].type);
+        this.renderedPads.shift();
+        if (this.renderedPads.length === 0) {
+          break;
+        }
+      }
+    }
   }
 
   checkSliding() {
@@ -1368,7 +1494,7 @@ class Attempt {
       if (
         (currentAttempt.tick + 1 - currentPlayer.jump.tickStarted) *
           (60 / 26 / tps) <
-        0.5
+        0.53
       ) {
         return;
       }
@@ -1388,6 +1514,9 @@ class Attempt {
     for (let ob of this.renderedPortals) {
       ob.hitboxesShown = true;
     }
+    for (let ob of this.renderedPads) {
+      ob.hitboxesShown = true;
+    }
   }
 
   hideObjHitboxes() {
@@ -1398,6 +1527,9 @@ class Attempt {
       ob.hitboxesShown = false;
     }
     for (let ob of this.renderedPortals) {
+      ob.hitboxesShown = false;
+    }
+    for (let ob of this.renderedPads) {
       ob.hitboxesShown = false;
     }
   }

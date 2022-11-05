@@ -36,6 +36,9 @@ wavePortalImage.src = "resources/wavePortal.png";
 let cubePortalImage = new Image();
 cubePortalImage.src = "resources/cubePortal.png";
 
+let yellowPadImage = new Image();
+yellowPadImage.src = "resources/yellowPad.png";
+
 const gamemodes = {
   cube: {
     hitbox: { left: 0, right: 0, top: 0, bottom: 0 },
@@ -81,9 +84,16 @@ const objs = {
     width: 1,
     height: 1,
   },
+  yellowPad: {
+    objType: "pad",
+    image: yellowPadImage,
+    padHitbox: { top: 0, bottom: 0, left: 0, right: 0 },
+    width: 1,
+    height: 0.2,
+  },
 };
 
-// for (let obj of fabulous_zonkoid) {
+// for (let obj of torture_chamber) {
 //   obj.originalPos.x -= 37;
 // }
 
@@ -132,6 +142,9 @@ function nextTick() {
   for (let ob of currentAttempt.renderedPortals) {
     ob.updatePosition();
   }
+  for (let ob of currentAttempt.renderedPads) {
+    ob.updatePosition();
+  }
 
   currentPlayer.updateStatus();
   currentPlayer.updatePosition();
@@ -144,6 +157,7 @@ function nextTick() {
 function animate() {
   animationFrame = window.requestAnimationFrame(animate);
   //console.log(currentAttempt.intervalID);
+
   currentBackground.draw();
   for (let ob of currentAttempt.renderedHazards) {
     ob.draw();
@@ -154,10 +168,16 @@ function animate() {
   for (let ob of currentAttempt.renderedPortals) {
     ob.drawLeftHalf();
   }
+  for (let ob of currentAttempt.renderedPads) {
+    ob.draw();
+  }
   for (let ob of currentAttempt.renderedHazards) {
     ob.drawHitboxes();
   }
   for (let ob of currentAttempt.renderedBlocks) {
+    ob.drawHitboxes();
+  }
+  for (let ob of currentAttempt.renderedPads) {
     ob.drawHitboxes();
   }
 
@@ -212,7 +232,7 @@ function death() {
 }
 
 function startAttempt() {
-  currentAttempt = new Attempt(fabulous_zonkoid, 8.7, "cube");
+  currentAttempt = new Attempt(torture_chamber, 8.7, "cube");
   currentAttempt.att = 1;
   currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
   currentAttempt.startTime = Date.now();
