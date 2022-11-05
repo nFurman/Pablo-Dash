@@ -332,11 +332,10 @@ document.addEventListener("keyup", (e) => {
   }
 });
 
-let testSpikeData = {
-  type: "spike",
-  position: {
-    x: 3,
-    y: 1,
-  },
-};
-let testSpike = new Hazard(testSpikeData);
+document.addEventListener("mousedown", (e) => {
+  currentPlayer.holding = true;
+});
+
+document.addEventListener("mouseup", (e) => {
+  currentPlayer.holding = false;
+});
