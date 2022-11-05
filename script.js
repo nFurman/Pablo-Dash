@@ -7,37 +7,47 @@ canvas.height = 800;
 const tau = 2 * Math.PI;
 
 const deathSound = new Audio("resources/explode_11.mp3");
+deathSound.volume = 0.1;
 
 let tps = 300;
 
 let gridLength = 73;
 
-let cubeImage = new Image();
+const cubeImage = new Image();
 cubeImage.src = "resources/coakmuffer.jpeg";
 
-let waveImage = new Image();
+const waveImage = new Image();
 waveImage.src = "resources/wave.png";
 
-let backgroundImage = new Image();
+const backgroundImage = new Image();
 backgroundImage.src = "resources/background.jpeg";
 
-let groundImage = new Image();
+const groundImage = new Image();
 groundImage.src = "resources/ground.jpeg";
 
-let spikeImage = new Image();
+const spikeImage = new Image();
 spikeImage.src = "resources/spike.png";
 
-let blockImage = new Image();
+const flatSpikeImage = new Image();
+flatSpikeImage.src = "resources/spike.png";
+
+const blockImage = new Image();
 blockImage.src = "resources/block.png";
 
-let wavePortalImage = new Image();
+const wavePortalImage = new Image();
 wavePortalImage.src = "resources/wavePortal.png";
 
-let cubePortalImage = new Image();
+const cubePortalImage = new Image();
 cubePortalImage.src = "resources/cubePortal.png";
 
-let yellowPadImage = new Image();
+const yellowPadImage = new Image();
 yellowPadImage.src = "resources/yellowPad.png";
+
+const pinkPadImage = new Image();
+pinkPadImage.src = "resources/pinkPad.png";
+
+const skeptic_chamber_song = new Audio("resources/skeptic chamber.mp3");
+skeptic_chamber_song.volume = 0.6;
 
 const gamemodes = {
   cube: {
@@ -56,9 +66,16 @@ const objs = {
   spike: {
     image: spikeImage,
     objType: "hazard",
-    hitbox: { top: 38, bottom: 5, left: 32, right: 32 },
+    hitbox: { top: 38, bottom: 20, left: 33, right: 33 },
     width: 1,
     height: 1,
+  },
+  flatSpike: {
+    image: flatSpikeImage,
+    objType: "hazard",
+    hitbox: { top: 30, bottom: 20, left: 34, right: 34 },
+    width: 1,
+    height: 0.5,
   },
   wavePortal: {
     image: wavePortalImage,
@@ -91,9 +108,16 @@ const objs = {
     width: 1,
     height: 0.2,
   },
+  pinkPad: {
+    objType: "pad",
+    image: pinkPadImage,
+    padHitbox: { top: 0, bottom: 0, left: 0, right: 0 },
+    width: 1,
+    height: 0.2,
+  },
 };
 
-// for (let obj of torture_chamber) {
+// for (let obj of skeptic_chamber) {
 //   obj.originalPos.x -= 37;
 // }
 
@@ -189,8 +213,16 @@ function animate() {
   }
   currentPlayer.drawHitboxes();
 
-  currentGround.draw();
   currentPlayer.checkExplosion();
+  currentGround.draw();
+
+  c.fillStyle = "white";
+  c.font = "bold 80px Courier New";
+  c.fillText(
+    "ATTEMPT  " + currentAttempt.att,
+    7 * gridLength - currentAttempt.distanceMoved,
+    canvas.height - currentGround.y - 5.5 * gridLength
+  );
 }
 
 function drawHitbox({ color, opacity, x, y, width, height }) {
@@ -219,7 +251,8 @@ function death() {
 
   //console.log(currentAttempt.renderedBlocks, currentAttempt.renderedHazards);
   //console.log(currentAttempt.intervalID);
-  //deathSound.play();
+  deathSound.play();
+  currentAttempt.song.pause();
   clearInterval(currentAttempt.intervalID);
   currentPlayer.explode();
   //let currentIntervalID = currentAttempt.intervalID;
@@ -232,7 +265,12 @@ function death() {
 }
 
 function startAttempt() {
-  currentAttempt = new Attempt(torture_chamber, 8.7, "cube");
+  currentAttempt = new Attempt(
+    skeptic_chamber,
+    skeptic_chamber_song,
+    8.7,
+    "cube"
+  );
   currentAttempt.att = 1;
   currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
   currentAttempt.startTime = Date.now();
@@ -241,6 +279,9 @@ function startAttempt() {
   currentPlayer = new Player();
   currentAttempt.copyObjs();
   currentAttempt.renderNextGroup();
+
+  currentAttempt.song.currentTime = 10.9;
+  currentAttempt.song.play();
 
   animate();
 }
@@ -258,6 +299,9 @@ function newAttempt(currentIntervalID) {
 
   currentPlayer.reset();
   currentAttempt.copyObjs();
+
+  currentAttempt.song.currentTime = 10.9;
+  currentAttempt.song.play();
 }
 
 document.addEventListener("keydown", (e) => {

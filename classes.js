@@ -100,7 +100,34 @@ class Obstacle extends Obj {
   }
 
   checkDeath() {
-    if (
+    if (this.rotation === Math.PI) {
+      if (
+        checkCollision(
+          {
+            x: currentPlayer.pos.x + currentPlayer.hitbox.left,
+            y: currentPlayer.pos.y - currentPlayer.hitbox.top,
+            width:
+              currentPlayer.sideLength -
+              currentPlayer.hitbox.left -
+              currentPlayer.hitbox.right,
+            height:
+              currentPlayer.sideLength -
+              currentPlayer.hitbox.bottom -
+              currentPlayer.hitbox.top,
+          },
+          {
+            x: this.pos.x + this.hitbox.left,
+            y: this.pos.y - this.hitbox.top,
+            width: this.width - this.hitbox.left - this.hitbox.right,
+            height: this.height - this.hitbox.bottom - this.hitbox.top,
+          }
+        )
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (
       checkCollision(
         {
           x: currentPlayer.pos.x + currentPlayer.hitbox.left,
@@ -116,9 +143,9 @@ class Obstacle extends Obj {
         },
         {
           x: this.pos.x + this.hitbox.left,
-          y: this.pos.y - this.hitbox.top,
+          y: this.pos.y - gridLength + this.height - this.hitbox.top,
           width: this.width - this.hitbox.left - this.hitbox.right,
-          height: this.width - this.hitbox.bottom - this.hitbox.top,
+          height: this.height - this.hitbox.bottom - this.hitbox.top,
         }
       )
     ) {
@@ -134,14 +161,29 @@ class Obstacle extends Obj {
     ) {
       return;
     }
-    drawHitbox({
-      color: "red",
-      opacity: 0.7,
-      x: this.pos.x + this.hitbox.left,
-      y: this.pos.y + currentGround.y - this.hitbox.top,
-      width: this.width - this.hitbox.left - this.hitbox.right,
-      height: this.height - this.hitbox.top - this.hitbox.bottom,
-    });
+    if (this.rotation === Math.PI) {
+      drawHitbox({
+        color: "red",
+        opacity: 0.7,
+        x: this.pos.x + this.hitbox.left,
+        y: this.pos.y + currentGround.y - this.hitbox.top,
+        width: this.width - this.hitbox.left - this.hitbox.right,
+        height: this.height - this.hitbox.top - this.hitbox.bottom,
+      });
+    } else
+      drawHitbox({
+        color: "red",
+        opacity: 0.7,
+        x: this.pos.x + this.hitbox.left,
+        y:
+          this.pos.y +
+          currentGround.y -
+          gridLength +
+          this.height -
+          this.hitbox.top,
+        width: this.width - this.hitbox.left - this.hitbox.right,
+        height: this.height - this.hitbox.top - this.hitbox.bottom,
+      });
   }
 }
 
@@ -222,15 +264,22 @@ class Block extends Obstacle {
       checkCollision(
         {
           x: currentPlayer.pos.x + currentPlayer.hitbox.left,
-          y: currentPlayer.pos.y - currentPlayer.hitbox.top,
+          y:
+            currentPlayer.pos.y -
+            currentPlayer.hitbox.top -
+            0.5 *
+              (currentPlayer.sideLength -
+                currentPlayer.hitbox.bottom -
+                currentPlayer.hitbox.top),
           width:
             currentPlayer.sideLength -
             currentPlayer.hitbox.left -
             currentPlayer.hitbox.right,
           height:
-            currentPlayer.sideLength -
-            currentPlayer.hitbox.bottom -
-            currentPlayer.hitbox.top,
+            0.5 *
+            (currentPlayer.sideLength -
+              currentPlayer.hitbox.bottom -
+              currentPlayer.hitbox.top),
         },
         {
           x: this.pos.x + this.slideHitbox.left,
@@ -474,37 +523,57 @@ class Player {
         }
         if (this.jump.isJumping) {
           //this.pos.y += (13.2 - this.airTime) / 1.1;
-          if (this.jump.type === "yellow") {
-            let jumpProgress =
-              (currentAttempt.tick + 1 - this.jump.tickStarted) *
-              (60 / 26 / tps);
-            if (jumpProgress < 1.3) {
-              this.pos.y =
-                this.jump.heightStarted +
-                11.5 * gridLength * jumpProgress -
-                8 * gridLength * jumpProgress * jumpProgress;
-            } else {
-              this.pos.y =
-                this.jump.heightStarted +
-                gridLength * (-9.6 * jumpProgress + 13.9);
-            }
-          } else {
-            let jumpProgress =
-              (currentAttempt.tick + 1 - this.jump.tickStarted) *
-              (60 / 26 / tps);
-            if (jumpProgress < 1.1) {
-              this.pos.y =
-                this.jump.heightStarted +
-                8 * gridLength * jumpProgress -
-                8 * gridLength * jumpProgress * jumpProgress;
-            } else {
-              this.pos.y =
-                this.jump.heightStarted +
-                gridLength * (-9.6 * jumpProgress + 9.5);
-            }
-            if (this.pos.y <= this.sideLength) {
-              this.land(0);
-            }
+          let jumpProgress;
+          switch (this.jump.type) {
+            case "yellowPad":
+              jumpProgress =
+                (currentAttempt.tick + 1 - this.jump.tickStarted) *
+                (60 / 26 / tps);
+              if (jumpProgress < 1.4) {
+                this.pos.y =
+                  this.jump.heightStarted +
+                  11.5 * gridLength * jumpProgress -
+                  8 * gridLength * jumpProgress * jumpProgress;
+              } else {
+                this.pos.y =
+                  this.jump.heightStarted +
+                  gridLength * (-9.6 * jumpProgress + 13.9);
+              }
+              break;
+            case "pinkPad":
+              jumpProgress =
+                (currentAttempt.tick + 1 - this.jump.tickStarted) *
+                (60 / 26 / tps);
+              if (jumpProgress < 1.1) {
+                this.pos.y =
+                  this.jump.heightStarted +
+                  8 * gridLength * jumpProgress -
+                  8 * gridLength * jumpProgress * jumpProgress;
+              } else {
+                this.pos.y =
+                  this.jump.heightStarted +
+                  gridLength * (-9.6 * jumpProgress + 9.5);
+              }
+              break;
+
+            default:
+              jumpProgress =
+                (currentAttempt.tick + 1 - this.jump.tickStarted) *
+                (60 / 26 / tps);
+              if (jumpProgress < 1.1) {
+                this.pos.y =
+                  this.jump.heightStarted +
+                  8 * gridLength * jumpProgress -
+                  8 * gridLength * jumpProgress * jumpProgress;
+              } else {
+                this.pos.y =
+                  this.jump.heightStarted +
+                  gridLength * (-9.6 * jumpProgress + 9.5);
+              }
+              if (this.pos.y <= this.sideLength) {
+                this.land(0);
+              }
+              break;
           }
         }
         if (this.fall.isFalling) {
@@ -1014,7 +1083,7 @@ class Pad extends Obj {
         }
       )
     ) {
-      currentPlayer.doJump("yellow");
+      currentPlayer.doJump(this.type);
       this.hasBeenUsed = true;
     }
   }
@@ -1294,20 +1363,20 @@ class Background {
       canvas.width,
       canvas.height
     );
-    c.drawImage(
-      this.image,
-      this.distanceMoved,
-      -currentGround.y - canvas.height,
-      canvas.width,
-      canvas.height
-    );
-    c.drawImage(
-      this.image,
-      this.distanceMoved + canvas.width,
-      -currentGround.y - canvas.height,
-      canvas.width,
-      canvas.height
-    );
+
+    let translateX = this.distanceMoved;
+    c.translate(translateX, 0);
+    c.scale(1, -1);
+    c.drawImage(this.image, 0, currentGround.y, canvas.width, canvas.height);
+    c.scale(1, -1);
+    c.translate(-translateX, 0);
+
+    translateX = this.distanceMoved + canvas.width;
+    c.translate(translateX, 0);
+    c.scale(1, -1);
+    c.drawImage(this.image, 0, currentGround.y, canvas.width, canvas.height);
+    c.scale(1, -1);
+    c.translate(-translateX, 0);
   }
 }
 
@@ -1356,8 +1425,9 @@ class Ground {
 }
 
 class Attempt {
-  constructor(levelObjs, startingSpeed, startingGamemode) {
+  constructor(levelObjs, song, startingSpeed, startingGamemode) {
     this.levelObjs = levelObjs;
+    this.song = song;
     this.distanceMoved = 0;
     this.att = 1;
     this.tick = 0;
