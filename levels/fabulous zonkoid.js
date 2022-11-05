@@ -1,4 +1,4 @@
-let testingGroundLevel = [
+let fabulous_zonkoid = [
   { type: "spike", originalPos: { x: 4, y: 4.5 }, rotation: 1 },
   { type: "spike", originalPos: { x: 4, y: 5 }, rotation: 1 },
   { type: "spike", originalPos: { x: 4, y: 5.5 }, rotation: 1 },
@@ -106,6 +106,8 @@ let testingGroundLevel = [
   { type: "block", originalPos: { x: 30, y: 2 }, rotation: 0 },
   { type: "block", originalPos: { x: 31, y: 2 }, rotation: 0 },
   { type: "block", originalPos: { x: 32, y: 2 }, rotation: 0 },
+  { type: "spike", originalPos: { x: 31, y: 1 }, rotation: 1 },
+  { type: "spike", originalPos: { x: 32, y: 1 }, rotation: 1 },
   { type: "block", originalPos: { x: 33, y: 2 }, rotation: 0 },
   { type: "block", originalPos: { x: 33, y: 1 }, rotation: 0 },
   { type: "block", originalPos: { x: 34, y: 1 }, rotation: 0 },
@@ -121,6 +123,9 @@ let testingGroundLevel = [
   { type: "block", originalPos: { x: 30, y: 7 }, rotation: 1 },
   { type: "block", originalPos: { x: 31, y: 7 }, rotation: 1 },
   { type: "spike", originalPos: { x: 31, y: 6 }, rotation: 1 },
+  { type: "spike", originalPos: { x: 31, y: 9 }, rotation: 0 },
+
+  { type: "spike", originalPos: { x: 31, y: 3 }, rotation: 0 },
 
   { type: "block", originalPos: { x: 31, y: 8 }, rotation: 1 },
   { type: "block", originalPos: { x: 32, y: 8 }, rotation: 1 },
@@ -135,5 +140,13 @@ let testingGroundLevel = [
   { type: "block", originalPos: { x: 35, y: 5 }, rotation: 1 },
 
   { type: "spike", originalPos: { x: 34, y: 4 }, rotation: 1 },
-  { type: "spike", originalPos: { x: 35, y: 4 }, rotation: 1 },
+  { type: "block", originalPos: { x: 35, y: 4 }, rotation: 1 },
+
+  { type: "spike", originalPos: { x: 39.9, y: 1 }, rotation: 0 },
+  { type: "spike", originalPos: { x: 40.45, y: 1 }, rotation: 1 },
+  { type: "spike", originalPos: { x: 41, y: 1 }, rotation: 1 },
+  { type: "spike", originalPos: { x: 41, y: 1 }, rotation: 0 },
+  { type: "spike", originalPos: { x: 41, y: 2 }, rotation: 0 },
+  { type: "spike", originalPos: { x: 41.55, y: 1 }, rotation: 1 },
+  { type: "spike", originalPos: { x: 42.1, y: 1 }, rotation: 0 },
 ];

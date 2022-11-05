@@ -44,8 +44,8 @@ const gamemodes = {
   },
   wave: {
     image: waveImage,
-    hitbox: { left: 7, right: 40, top: 30, bottom: 30 },
-    hitboxForBlocks: { left: 7, right: 40, top: 30, bottom: 30 },
+    hitbox: { left: 7, right: 40, top: 33, bottom: 33 },
+    hitboxForBlocks: { left: 7, right: 40, top: 33, bottom: 33 },
   },
 };
 
@@ -53,7 +53,7 @@ const objs = {
   spike: {
     image: spikeImage,
     objType: "hazard",
-    hitbox: { top: 38, bottom: 5, left: 30, right: 30 },
+    hitbox: { top: 38, bottom: 5, left: 32, right: 32 },
     width: 1,
     height: 1,
   },
@@ -83,8 +83,8 @@ const objs = {
   },
 };
 
-// for (let obj of careening_cosmonaut) {
-//   obj.originalPos.x -= 25;
+// for (let obj of fabulous_zonkoid) {
+//   obj.originalPos.x -= 37;
 // }
 
 let currentAttempt;
@@ -212,7 +212,7 @@ function death() {
 }
 
 function startAttempt() {
-  currentAttempt = new Attempt(testingGroundLevel, 8.7, "cube");
+  currentAttempt = new Attempt(fabulous_zonkoid, 8.7, "cube");
   currentAttempt.att = 1;
   currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
   currentAttempt.startTime = Date.now();
