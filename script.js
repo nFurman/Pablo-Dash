@@ -1,8 +1,8 @@
 const canvas = document.getElementById("canvas");
 const c = canvas.getContext("2d");
 
-canvas.width = 1440;
-canvas.height = 800;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
 const tau = 2 * Math.PI;
 
@@ -57,8 +57,8 @@ const gamemodes = {
   },
   wave: {
     image: waveImage,
-    hitbox: { left: 7, right: 40, top: 33, bottom: 33 },
-    hitboxForBlocks: { left: 7, right: 40, top: 33, bottom: 33 },
+    hitbox: { left: 13, right: 40, top: 33, bottom: 33 },
+    hitboxForBlocks: { left: 13, right: 40, top: 33, bottom: 33 },
   },
 };
 

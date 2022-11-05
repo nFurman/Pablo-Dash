@@ -799,7 +799,8 @@ class Player {
         let length =
           (currentAttempt.distanceMoved -
             (this.jump.tickStarted - 1) * currentAttempt.speed) *
-          Math.sqrt(2);
+            Math.sqrt(2) +
+          0.5 * (this.sideLength - this.hitbox.left - this.hitbox.right);
         c.translate(translateX, translateY);
         c.rotate(-Math.PI / 4);
         c.fillRect(
@@ -836,7 +837,8 @@ class Player {
         let length =
           (currentAttempt.distanceMoved -
             (this.fall.tickStarted - 1) * currentAttempt.speed) *
-          Math.sqrt(2);
+            Math.sqrt(2) +
+          0.5 * (this.sideLength - this.hitbox.left - this.hitbox.right);
         c.translate(translateX, translateY);
         c.rotate(Math.PI / 4);
         c.fillRect(
@@ -1444,7 +1446,7 @@ class Attempt {
     this.renderedWaveTrails = [];
 
     this.objHitboxesShown = false;
-    this.shod = true;
+    this.shod = false;
   }
 
   copyObjs() {
