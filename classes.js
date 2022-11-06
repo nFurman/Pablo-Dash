@@ -300,7 +300,7 @@ class Block extends Obstacle {
 
 class Player {
   constructor() {
-    this.sideLength = 73;
+    this.sideLength = gridLength;
     this.spawnInGamemode(currentAttempt.startingGamemode);
     this.pos = {
       y: this.sideLength,

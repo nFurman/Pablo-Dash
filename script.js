@@ -11,10 +11,11 @@ deathSound.volume = 0.1;
 
 const menuLoop = new Audio("resources/menuLoop.mp3");
 menuLoop.volume = 0.3;
+menuLoop.loop = true;
 
 let tps = 300;
 
-let gridLength = 73;
+let gridLength = canvas.width / 19.7;
 
 const cubeImage = new Image();
 cubeImage.src = "resources/coakmuffer.jpeg";
@@ -382,9 +383,7 @@ function escapeTo(screen) {
 document.addEventListener("keydown", (e) => {
   if (e.key === " " || e.key === "ArrowUp") {
     //console.log("jumpin");
-    if (currentScreen === "playing") {
-      currentPlayer.holding = true;
-    }
+    click();
   }
 
   if (e.key === "Escape") {
@@ -406,20 +405,26 @@ document.addEventListener("keydown", (e) => {
 
 document.addEventListener("keyup", (e) => {
   if (e.key === " " || e.key === "ArrowUp") {
-    if (currentScreen === "playing") {
-      currentPlayer.holding = false;
-    }
+    release();
   }
 });
 
-document.addEventListener("mousedown", (e) => {
+document.addEventListener("mousedown", click);
+
+document.addEventListener("mouseup", release);
+
+document.addEventListener("touchstart", click);
+
+document.addEventListener("touchend", release);
+
+function click() {
   if (currentScreen === "playing") {
     currentPlayer.holding = true;
   }
-});
+}
 
-document.addEventListener("mouseup", (e) => {
+function release() {
   if (currentScreen === "playing") {
     currentPlayer.holding = false;
   }
-});
+}

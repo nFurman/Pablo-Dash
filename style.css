@@ -49,7 +49,7 @@ input {
 button {
   position: absolute;
   font-family: copperPlate;
-  font-size: 70px;
+  font-size: 5vw;
   color: aliceblue;
   background-image: url("https://img.freepik.com/free-vector/gradient-background-green-tones_23-2148374530.jpg");
 }
