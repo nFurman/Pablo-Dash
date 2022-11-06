@@ -23,6 +23,10 @@ label {
   top: 50px;
 }
 
+#menuLoopLabel {
+  top: 90px;
+}
+
 input {
   width: 30px;
   height: 30px;
@@ -36,6 +40,10 @@ input {
 
 #noclip {
   top: 48px;
+}
+
+#menuLoop {
+  top: 88px;
 }
 
 button {
