@@ -49,6 +49,12 @@ pinkPadImage.src = "resources/pinkPad.png";
 const skeptic_chamber_song = new Audio("resources/skeptic chamber.mp3");
 skeptic_chamber_song.volume = 0.6;
 
+const careening_cosmonaut_song = new Audio("resources/careening cosmonaut.mp3");
+careening_cosmonaut_song.volume = 0.8;
+
+const fabulous_zonkoid_song = new Audio("resources/fabulous zonkoid.mp3");
+fabulous_zonkoid_song.volume = 0.3;
+
 const gamemodes = {
   cube: {
     hitbox: { left: 0, right: 0, top: 0, bottom: 0 },
@@ -66,7 +72,7 @@ const objs = {
   spike: {
     image: spikeImage,
     objType: "hazard",
-    hitbox: { top: 38, bottom: 20, left: 33, right: 33 },
+    hitbox: { top: 38, bottom: 15, left: 33, right: 33 },
     width: 1,
     height: 1,
   },
@@ -120,6 +126,7 @@ const objs = {
 // for (let obj of skeptic_chamber) {
 //   obj.originalPos.x -= 37;
 // }
+let currentScreen = "mainMenu";
 
 let currentAttempt;
 let currentBackground;
@@ -263,14 +270,39 @@ function death() {
   // }, 1000);
   setTimeout(newAttempt, 1000, currentAttempt.intervalID);
 }
+const mainMenuDiv = document.getElementById("mainMenuDiv");
+const windowDiv = document.getElementById("windowDiv");
+const levelSelectorDiv = document.getElementById("levelSelectorDiv");
 
-function startAttempt() {
-  currentAttempt = new Attempt(
-    skeptic_chamber,
-    skeptic_chamber_song,
-    8.7,
-    "cube"
-  );
+const shodBox = document.getElementById("shod");
+const noclipBox = document.getElementById("noclip");
+
+levelSelectorDiv.remove();
+
+function playButtonClicked() {
+  currentScreen = "levelSelect";
+  mainMenuDiv.remove();
+  windowDiv.prepend(levelSelectorDiv);
+}
+
+function careeningCosmonautButtonClicked() {
+  levelSelectorDiv.remove();
+  startAttempt(careening_cosmonaut, careening_cosmonaut_song);
+}
+function fabulousZonkoidButtonClicked() {
+  levelSelectorDiv.remove();
+  startAttempt(fabulous_zonkoid, fabulous_zonkoid_song, 13);
+}
+
+function skepticChamberButtonClicked() {
+  levelSelectorDiv.remove();
+  startAttempt(skeptic_chamber, skeptic_chamber_song, 10.9);
+}
+
+function startAttempt(levelObjs, levelSong, offset = 0) {
+  currentScreen = "playing";
+  let shod = shodBox.checked;
+  currentAttempt = new Attempt(levelObjs, levelSong, 8.7, "cube", shod);
   currentAttempt.att = 1;
   currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
   currentAttempt.startTime = Date.now();
@@ -280,13 +312,15 @@ function startAttempt() {
   currentAttempt.copyObjs();
   currentAttempt.renderNextGroup();
 
-  currentAttempt.song.currentTime = 10.9;
+  currentAttempt.songOffset = offset;
+  currentAttempt.song.currentTime = currentAttempt.songOffset;
   currentAttempt.song.play();
 
   animate();
 }
 
 function newAttempt(currentIntervalID) {
+  currentScreen = "playing";
   if (currentAttempt.intervalID != currentIntervalID) {
     return;
   }
@@ -300,27 +334,51 @@ function newAttempt(currentIntervalID) {
   currentPlayer.reset();
   currentAttempt.copyObjs();
 
-  currentAttempt.song.currentTime = 10.9;
+  currentAttempt.song.currentTime = currentAttempt.songOffset;
   currentAttempt.song.play();
+}
+
+function escapeTo(screen) {
+  switch (screen) {
+    case "levelSelect":
+      currentAttempt.song.pause();
+      clearInterval(currentAttempt.intervalID);
+      windowDiv.prepend(levelSelectorDiv);
+      currentScreen = "levelSelect";
+      break;
+    case "mainMenu":
+      levelSelectorDiv.remove();
+      windowDiv.prepend(mainMenuDiv);
+      currentScreen = "mainMenu";
+      break;
+  }
 }
 
 document.addEventListener("keydown", (e) => {
   if (e.key === " " || e.key === "ArrowUp") {
     //console.log("jumpin");
-    currentPlayer.holding = true;
+    if (currentScreen === "playing") {
+      currentPlayer.holding = true;
+    }
   }
-  if (e.key == "s") {
-    startAttempt();
+
+  if (e.key === "Escape") {
+    if (currentScreen === "playing") {
+      escapeTo("levelSelect");
+    } else if (currentScreen === "levelSelect") {
+      escapeTo("mainMenu");
+    }
   }
-  if (e.key == "r") {
+
+  if (e.key === "r") {
     newAttempt(currentAttempt.intervalID);
   }
 
-  if (e.key == "n") {
+  if (e.key === "n" && noclipBox.checked) {
     currentPlayer.noclip = !currentPlayer.noclip;
   }
 
-  if (e.key == "p") {
+  if (e.key === "p") {
     console.table(currentPlayer.renderedWaveTrails);
     clearInterval(currentAttempt.intervalID);
   }
@@ -328,14 +386,20 @@ document.addEventListener("keydown", (e) => {
 
 document.addEventListener("keyup", (e) => {
   if (e.key === " " || e.key === "ArrowUp") {
-    currentPlayer.holding = false;
+    if (currentScreen === "playing") {
+      currentPlayer.holding = false;
+    }
   }
 });
 
 document.addEventListener("mousedown", (e) => {
-  currentPlayer.holding = true;
+  if (currentScreen === "playing") {
+    currentPlayer.holding = true;
+  }
 });
 
 document.addEventListener("mouseup", (e) => {
-  currentPlayer.holding = false;
+  if (currentScreen === "playing") {
+    currentPlayer.holding = false;
+  }
 });

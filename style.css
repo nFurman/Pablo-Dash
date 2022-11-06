@@ -7,3 +7,87 @@ canvas {
   background-color: white;
   cursor: none;
 }
+
+label {
+  font-family: copperPlate;
+  font-size: 30px;
+  position: absolute;
+  left: 43px;
+}
+
+#shodLabel {
+  top: 10px;
+}
+
+#noclipLabel {
+  top: 50px;
+}
+
+input {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  left: 8px;
+}
+
+#shod {
+  top: 8px;
+}
+
+#noclip {
+  top: 48px;
+}
+
+button {
+  position: absolute;
+  font-family: copperPlate;
+  font-size: 70px;
+  color: aliceblue;
+  background-image: url("https://img.freepik.com/free-vector/gradient-background-green-tones_23-2148374530.jpg");
+}
+
+#playGameButton {
+  left: 32.5%;
+  top: 37.5%;
+  width: 35%;
+  height: 25%;
+}
+#mainMenuDiv {
+  width: 100%;
+  height: 100%;
+  background-image: url("https://media.discordapp.net/attachments/1038739826251403294/1038741769690566676/E0B2091B-C969-42E3-999D-18147EAE1B99.jpg?width=1378&height=1034");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  position: absolute;
+}
+
+#levelSelectorDiv {
+  width: 100%;
+  height: 100%;
+  background-image: url("https://cdn.discordapp.com/attachments/932818621347020810/1005851200618504264/unknown.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  position: absolute;
+}
+
+.levelButton {
+  top: 45%;
+  width: 29%;
+  height: 25%;
+}
+
+#careeningCosmonautButton {
+  left: 4%;
+}
+
+#fabulousZonkoidButton {
+  left: 35.5%;
+}
+
+#skepticChamberButton {
+  left: 67%;
+}
+
+#windowDiv {
+  position: relative;
+}

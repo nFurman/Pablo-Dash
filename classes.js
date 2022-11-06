@@ -1427,7 +1427,7 @@ class Ground {
 }
 
 class Attempt {
-  constructor(levelObjs, song, startingSpeed, startingGamemode) {
+  constructor(levelObjs, song, startingSpeed, startingGamemode, shod) {
     this.levelObjs = levelObjs;
     this.song = song;
     this.distanceMoved = 0;
@@ -1446,7 +1446,7 @@ class Attempt {
     this.renderedWaveTrails = [];
 
     this.objHitboxesShown = false;
-    this.shod = false;
+    this.shod = shod;
   }
 
   copyObjs() {
