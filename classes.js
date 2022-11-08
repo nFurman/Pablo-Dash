@@ -1020,6 +1020,7 @@ class Player {
 
   explode() {
     this.show = false;
+    if (currentAttempt.shod) return;
     this.isExploding = true;
     this.explosion = new Explosion({
       timeStarted: Date.now(),
@@ -1116,11 +1117,12 @@ class Pad extends Obj {
     ) {
       return;
     }
+    console.log(this.height);
     drawHitbox({
       color: "green",
       opacity: 0.7,
       x: this.pos.x + this.padHitbox.left,
-      y: this.pos.y + currentGround.y - gridLength + this.height,
+      y: this.pos.y + currentGround.y - this.padHitbox.top,
       width: this.width - this.padHitbox.left - this.padHitbox.right,
       height: this.height - this.padHitbox.top - this.padHitbox.bottom,
     });
@@ -1145,7 +1147,7 @@ class Pad extends Obj {
         },
         {
           x: this.pos.x + this.padHitbox.left,
-          y: this.pos.y - gridLength + this.height,
+          y: this.pos.y - this.padHitbox.top,
           width: this.width - this.padHitbox.left - this.padHitbox.right,
           height: this.height - this.padHitbox.bottom - this.padHitbox.top,
         }

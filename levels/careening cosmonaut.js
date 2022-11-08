@@ -1,5 +1,5 @@
-let careening_cosmonaut = [
-  { type: "spike", originalPos: { x: 9, y: 1 } },
+const careening_cosmonaut = [
+  { type: "flatSpike", originalPos: { x: 9, y: 1 } },
 
   { type: "spike", originalPos: { x: 20, y: 1 } },
   { type: "spike", originalPos: { x: 20.5, y: 1.3 } },

@@ -39,7 +39,7 @@ const spikeImage = new Image();
 spikeImage.src = "resources/spike.png";
 
 const flatSpikeImage = new Image();
-flatSpikeImage.src = "resources/spike.png";
+flatSpikeImage.src = "resources/flatSpike.png";
 
 const blockImage = new Image();
 blockImage.src = "resources/block.png";
@@ -64,6 +64,9 @@ careening_cosmonaut_song.volume = 1;
 
 const fabulous_zonkoid_song = new Audio("resources/fabulous zonkoid.mp3");
 fabulous_zonkoid_song.volume = 0.3;
+
+const te_ika_a_maui_song = new Audio("resources/te ika a maui.mp3");
+te_ika_a_maui_song.volume = 0.8;
 
 const mainMenuDiv = document.getElementById("mainMenuDiv");
 const windowDiv = document.getElementById("windowDiv");
@@ -94,16 +97,16 @@ const objs = {
   spike: {
     image: spikeImage,
     objType: "hazard",
-    hitbox: { top: 38, bottom: 15, left: 33, right: 33 },
+    hitbox: { top: 39, bottom: 15, left: 34, right: 34 },
     width: 1,
     height: 1,
   },
   flatSpike: {
     image: flatSpikeImage,
     objType: "hazard",
-    hitbox: { top: 30, bottom: 20, left: 34, right: 34 },
+    hitbox: { top: 69, bottom: 7, left: 31, right: 31 },
     width: 1,
-    height: 0.5,
+    height: 1,
   },
   wavePortal: {
     image: wavePortalImage,
@@ -132,16 +135,16 @@ const objs = {
   yellowPad: {
     objType: "pad",
     image: yellowPadImage,
-    padHitbox: { top: 0, bottom: 0, left: 0, right: 0 },
+    padHitbox: { top: 80, bottom: 0, left: 0, right: 0 },
     width: 1,
-    height: 0.2,
+    height: 1,
   },
   pinkPad: {
     objType: "pad",
     image: pinkPadImage,
-    padHitbox: { top: 0, bottom: 0, left: 0, right: 0 },
+    padHitbox: { top: 80, bottom: 0, left: 0, right: 0 },
     width: 1,
-    height: 0.2,
+    height: 1,
   },
 };
 
@@ -368,6 +371,11 @@ function skepticChamberButtonClicked() {
   startAttempt(skeptic_chamber, skeptic_chamber_song, 10.9);
 }
 
+function teIkaAMauiButtonClicked() {
+  levelSelectorDiv.remove();
+  startAttempt(te_ika_a_maui, te_ika_a_maui_song);
+}
+
 function startAttempt(levelObjs, levelSong, offset = 0) {
   menuLoop.pause();
   levelSelectSound.play();
@@ -385,7 +393,10 @@ function startAttempt(levelObjs, levelSong, offset = 0) {
   currentAttempt.songOffset = offset;
   currentAttempt.song.currentTime = currentAttempt.songOffset;
 
+  currentPlayer.isDead = false;
   drawStuff();
+  currentPlayer.isDead = true;
+  //easy fix for hitboxes showing before the level started
 
   setTimeout(() => {
     currentPlayer.isDead = false;

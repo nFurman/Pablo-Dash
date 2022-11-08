@@ -1,4 +1,4 @@
-let skeptic_chamber = [
+const skeptic_chamber = [
   { type: "flatSpike", originalPos: { x: 36, y: 1 }, rotation: 0 },
   { type: "flatSpike", originalPos: { x: 37, y: 1 }, rotation: 0 },
   { type: "flatSpike", originalPos: { x: 38, y: 1 }, rotation: 0 },

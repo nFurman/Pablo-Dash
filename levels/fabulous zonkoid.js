@@ -1,4 +1,4 @@
-let fabulous_zonkoid = [
+const fabulous_zonkoid = [
   { type: "spike", originalPos: { x: -1, y: 4.5 }, rotation: 1 },
   { type: "spike", originalPos: { x: -1, y: 5 }, rotation: 1 },
   { type: "spike", originalPos: { x: -1, y: 5.5 }, rotation: 1 },
