@@ -27,15 +27,16 @@ label {
   top: 90px;
 }
 
-#fpsLabel {
+#tpsLabel {
   top: 124px;
   left: 57px;
 }
 
-#tpsLabel {
+/*
+#fpsLabel {
   top: 153px;
   left: 57px;
-}
+}*/
 
 .cbox {
   width: 30px;
@@ -56,19 +57,20 @@ label {
   top: 88px;
 }
 
-#fps {
+#tps {
   position: absolute;
   left: 8px;
   top: 129px;
   width: 40px;
 }
 
-#tps {
+/*
+#fps {
   position: absolute;
   left: 8px;
   top: 158px;
   width: 40px;
-}
+}*/
 
 button {
   position: absolute;

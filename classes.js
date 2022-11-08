@@ -321,10 +321,10 @@ class Player {
     this.wavePulse = 0.3;
     this.isExploding = false;
     this.explosion = {};
-    this.holding = false;
+    this.hold = { isHolding: false, timeStarted: 0 };
     this.show = true;
     this.hitboxesShown = false;
-    this.isDead = false;
+    this.isDead = true;
     this.noclip = false;
   }
 
@@ -350,6 +350,7 @@ class Player {
     this.explosion = {};
     this.show = true;
     this.isDead = false;
+    this.hold = { isHolding: false, timeStarted: 0 };
   }
 
   changeGamemode(gamemode) {
@@ -373,7 +374,7 @@ class Player {
     if (gamemode != "cube") {
       this.doFall();
     } else {
-      this.doFall("max");
+      this.doFall("mid");
     }
   }
 
@@ -392,53 +393,58 @@ class Player {
     }
   }
 
-  doFall(fallSpeed) {
-    //console.log("fallin");
+  doFall(fallSpeed, tickStarted = currentAttempt.tick) {
+    console.log("fallin");
     if (this.gamemode === "wave" && this.jump.isJumping) {
       this.renderedWaveTrails.push({
         startDistanceMoved: this.jump.tickStarted * currentAttempt.speed,
         startHeight: this.jump.heightStarted,
         angle: Math.PI / 4,
-        endDistanceMoved: currentAttempt.distanceMoved,
-        endHeight: this.pos.y,
+        endDistanceMoved: tickStarted * currentAttempt.speed,
+        endHeight:
+          this.jump.heightStarted +
+          (tickStarted - this.jump.tickStarted) * currentAttempt.speed, //this.pos.y,
       });
     }
     this.slide.isSliding = false;
     this.jump.isJumping = false;
     this.fall = {
       isFalling: true,
-      tickStarted: currentAttempt.tick,
+      tickStarted: tickStarted,
       heightStarted: this.pos.y,
       angleStarted: this.angle,
       startSpeed: fallSpeed,
     };
   }
 
-  doJump(colorType) {
-    //console.log("jumpin");
-    if (this.gamemode === "wave" && this.fall.isFalling) {
-      this.renderedWaveTrails.push({
-        startDistanceMoved: this.fall.tickStarted * currentAttempt.speed,
-        startHeight: this.fall.heightStarted,
-        angle: -Math.PI / 4,
-        endDistanceMoved: currentAttempt.distanceMoved,
-        endHeight: this.pos.y,
-      });
-    }
-    if (this.slide.isSliding) {
-      this.renderedWaveTrails.push({
-        startDistanceMoved: this.slide.tickStarted * currentAttempt.speed,
-        startHeight: this.slide.height + this.sideLength - this.hitbox.bottom,
-        angle: 0,
-        endDistanceMoved: currentAttempt.distanceMoved,
-        endHeight: this.pos.y,
-      });
+  doJump(colorType, tickStarted = currentAttempt.tick) {
+    if (this.gamemode === "wave") {
+      if (this.fall.isFalling) {
+        this.renderedWaveTrails.push({
+          startDistanceMoved: this.fall.tickStarted * currentAttempt.speed,
+          startHeight: this.fall.heightStarted,
+          angle: -Math.PI / 4,
+          endDistanceMoved: tickStarted * currentAttempt.speed,
+          endHeight:
+            this.fall.heightStarted -
+            (tickStarted - this.fall.tickStarted) * currentAttempt.speed,
+        });
+      }
+      if (this.slide.isSliding) {
+        this.renderedWaveTrails.push({
+          startDistanceMoved: this.slide.tickStarted * currentAttempt.speed,
+          startHeight: this.slide.height + this.sideLength - this.hitbox.bottom,
+          angle: 0,
+          endDistanceMoved: tickStarted * currentAttempt.speed,
+          endHeight: this.pos.y,
+        });
+      }
     }
     this.slide.isSliding = false;
     this.fall.isFalling = false;
     this.jump = {
       isJumping: true,
-      tickStarted: currentAttempt.tick,
+      tickStarted: tickStarted,
       heightStarted: this.pos.y,
       angleStarted: this.angle,
       type: colorType,
@@ -463,7 +469,7 @@ class Player {
       this.pos.y = this.sideLength;
     }
     this.fall.isFalling = false;
-    if (!this.holding) {
+    if (!this.hold.isHolding) {
       this.jump.isJumping = false;
       this.slide = {
         isSliding: true,
@@ -472,7 +478,7 @@ class Player {
       this.angle =
         0.5 * Math.PI * Math.round(((this.angle % tau) / tau) * 4 - 0.2);
     } else {
-      this.doJump();
+      this.doJump("");
     }
   }
 
@@ -484,7 +490,7 @@ class Player {
         startDistanceMoved: this.fall.tickStarted * currentAttempt.speed,
         startHeight: this.fall.heightStarted,
         angle: -Math.PI / 4,
-        endDistanceMoved: currentAttempt.distanceMoved,
+        endDistanceMoved: currentAttempt.distanceMoved, //cums
         endHeight: y + this.sideLength - this.hitbox.bottom,
       });
     }
@@ -493,7 +499,7 @@ class Player {
       this.pos.y = this.sideLength - this.hitbox.bottom;
     }
     this.fall.isFalling = false;
-    if (!this.holding) {
+    if (!this.hold.isHolding) {
       this.jump.isJumping = false;
       this.slide = {
         isSliding: true,
@@ -502,15 +508,15 @@ class Player {
       };
       this.angle = 0;
     } else {
-      this.doJump();
+      this.doJump("");
     }
   }
 
   updatePosition() {
     switch (this.gamemode) {
       case "cube":
-        if (this.slide.isSliding && this.holding) {
-          this.doJump();
+        if (this.slide.isSliding && this.hold.isHolding) {
+          this.doJump("", (this.hold.startTime * tps) / 1000);
         }
         if (this.jump.isJumping) {
           this.angle =
@@ -555,7 +561,6 @@ class Player {
                   gridLength * (-9.6 * jumpProgress + 9.5);
               }
               break;
-
             default:
               jumpProgress =
                 (currentAttempt.tick + 1 - this.jump.tickStarted) *
@@ -570,7 +575,7 @@ class Player {
                   this.jump.heightStarted +
                   gridLength * (-9.6 * jumpProgress + 9.5);
               }
-              if (this.pos.y <= this.sideLength) {
+              if (this.pos.y < this.sideLength) {
                 this.land(0);
               }
               break;
@@ -582,6 +587,17 @@ class Player {
           if (this.fall.startSpeed === "max") {
             this.pos.y =
               this.fall.heightStarted + gridLength * (-9.6 * fallProgress);
+          } else if (this.fall.startSpeed === "mid") {
+            if (fallProgress < 0.53) {
+              this.pos.y =
+                this.fall.heightStarted -
+                8 * gridLength * fallProgress * fallProgress -
+                1.12 * fallProgress;
+            } else {
+              this.pos.y =
+                this.fall.heightStarted +
+                gridLength * (-9.6 * fallProgress + 2.28);
+            }
           } else {
             if (fallProgress < 0.6) {
               this.pos.y =
@@ -599,11 +615,15 @@ class Player {
         }
         break;
       case "wave":
-        if (!this.jump.isJumping && this.holding) {
-          this.doJump();
+        if (!this.jump.isJumping && this.hold.isHolding) {
+          this.doJump("", (this.hold.startTime * tps) / 1000);
         }
-        if (!this.fall.isFalling && !this.holding && !this.slide.isSliding) {
-          this.doFall();
+        if (
+          !this.fall.isFalling &&
+          !this.hold.isHolding &&
+          !this.slide.isSliding
+        ) {
+          this.doFall("", (this.hold.startTime * tps) / 1000);
         }
         if (this.jump.isJumping) {
           if (this.angle >= Math.PI / 4 - 0.01) {
@@ -648,7 +668,7 @@ class Player {
   }
 
   drawWin() {
-    console.log(currentAttempt.distanceMoved - currentAttempt.winX);
+    //console.log(currentAttempt.distanceMoved - currentAttempt.winX);
     c.fillStyle = "white";
     c.font = "bold 8vw Georgia";
     c.globalAlpha = (currentAttempt.distanceMoved - currentAttempt.winX) / 400;

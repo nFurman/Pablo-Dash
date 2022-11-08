@@ -1,3 +1,5 @@
+"use strict";
+
 const canvas = document.getElementById("canvas");
 const c = canvas.getContext("2d");
 
@@ -7,7 +9,7 @@ canvas.height = window.innerHeight;
 const tau = 2 * Math.PI;
 
 const deathSound = new Audio("resources/explode_11.mp3");
-deathSound.volume = 0.1;
+deathSound.volume = 0.07;
 
 const menuLoop = new Audio("resources/menuLoop.mp3");
 menuLoop.volume = 0.3;
@@ -17,7 +19,7 @@ const levelSelectSound = new Audio("resources/level select.mp3");
 levelSelectSound.volume = 0.7;
 
 let tps = 700;
-let fps = 60;
+//let fps = 60;
 
 let gridLength = canvas.width / 19.7;
 
@@ -71,14 +73,14 @@ const shodBox = document.getElementById("shod");
 const noclipBox = document.getElementById("noclip");
 const menuLoopBox = document.getElementById("menuLoop");
 const tpsBox = document.getElementById("tps");
-const fpsBox = document.getElementById("fps");
+//const fpsBox = document.getElementById("fps");
 
 levelSelectorDiv.remove();
 
 const gamemodes = {
   cube: {
     hitbox: { left: 0, right: 0, top: 0, bottom: 0 },
-    hitboxForBlocks: { left: 0, right: 0, top: 20, bottom: 20 },
+    hitboxForBlocks: { left: 0, right: 0, top: 20, bottom: 35 },
     image: cubeImage,
   },
   wave: {
@@ -158,24 +160,21 @@ let currentPlayer;
 
 let lastDistanceMovedWhenRendered;
 function nextTick() {
+  if (currentPlayer.isDead) return;
   // tickTime = Date.now();
   // console.log(tickTime - lastTickTime);
   // lastTickTime = tickTime;
 
-  currentAttempt.tick++;
-  //console.log(currentPlayer.angle);
-  //console.log(currentPlayer.hitbox);
-  //console.log(currentPlayer.fall);
-  //console.log(currentPlayer.jump);
-  //console.log(currentPlayer.pos.y, currentGround.y);
-  // let potentialTick = Math.round(
-  //   ((Date.now() - currentAttempt.startTime) * tps) / 1000
-  // );
-  // if (potentialTick - currentAttempt.tick == 2) {
+  //currentAttempt.tick++;
+
+  // let potentialTick = ((Date.now() - currentAttempt.startTime) * tps) / 1000;
+  // if (potentialTick === currentAttempt.tick) {
   //   currentAttempt.tick++;
   // } else {
   //   currentAttempt.tick = potentialTick;
   // }
+
+  currentAttempt.tick = ((Date.now() - currentAttempt.startTime) * tps) / 1000;
   //console.log(currentAttempt.tick);
   currentAttempt.distanceMoved = currentAttempt.tick * currentAttempt.speed;
   if (
@@ -261,9 +260,10 @@ function drawStuff() {
 
 function animate() {
   if (currentScreen === "playing") {
-    animationFrame = window.requestAnimationFrame(animate);
+    window.requestAnimationFrame(animate);
   }
-  if (currentScreen == "playing" && !currentPlayer.isDead) {
+  /*
+  if (currentScreen == "playing") {
     //console.log("fps tick");
     nextTick();
 
@@ -271,6 +271,7 @@ function animate() {
       setTimeout(nextTick, (i * 1000) / tps);
     }
   }
+    */
   drawStuff();
 }
 
@@ -296,21 +297,22 @@ function checkCollision(rect1, rect2) {
 }
 function death() {
   console.log("broooooo");
+  //console.log(currentAttempt.tick);
   currentPlayer.isDead = true;
 
   //console.log(currentAttempt.renderedBlocks, currentAttempt.renderedHazards);
   //console.log(currentAttempt.intervalID);
   deathSound.play();
   currentAttempt.song.pause();
-  //clearInterval(currentAttempt.intervalID);
+  clearInterval(currentAttempt.intervalID);
   currentPlayer.explode();
-  //let currentIntervalID = currentAttempt.intervalID;
-  // setTimeout(() => {
-  //   if (currentAttempt.intervalID === currentIntervalID) {
-  //     newAttempt();
-  //   }
-  // }, 1000);
-  setTimeout(newAttempt, 1000, currentAttempt.intervalID);
+  let currentIntervalID = currentAttempt.intervalID;
+  setTimeout(() => {
+    if (currentAttempt.intervalID === currentIntervalID) {
+      newAttempt();
+    }
+  }, 1000);
+  //setTimeout(newAttempt, 1000 /*, currentAttempt.intervalID*/);
 }
 
 function playMenuLoop() {
@@ -331,8 +333,8 @@ menuLoopBox.addEventListener("change", function () {
 
 function playButtonClicked() {
   currentScreen = "levelSelect";
-  fps = fpsBox.value;
-  tps = fps * tpsBox.value;
+  //fps = fpsBox.value;
+  tps = tpsBox.value;
   mainMenuDiv.remove();
   windowDiv.prepend(levelSelectorDiv);
 }
@@ -358,7 +360,7 @@ function startAttempt(levelObjs, levelSong, offset = 0) {
   let shod = shodBox.checked;
   currentAttempt = new Attempt(levelObjs, levelSong, 8.7, "cube", shod);
   currentAttempt.att = 1;
-  //currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
+  currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
   currentBackground = new Background(backgroundImage);
   currentGround = new Ground(groundImage);
   currentPlayer = new Player();
@@ -370,6 +372,7 @@ function startAttempt(levelObjs, levelSong, offset = 0) {
 
   drawStuff();
   setTimeout(() => {
+    currentPlayer.isDead = false;
     currentAttempt.startTime = Date.now();
     currentAttempt.song.play();
 
@@ -377,17 +380,17 @@ function startAttempt(levelObjs, levelSong, offset = 0) {
   }, 1000);
 }
 
-function newAttempt(/*currentIntervalID*/) {
+function newAttempt(currentIntervalID) {
   // if (currentAttempt.intervalID != currentIntervalID) {
   //   return;
   // }
   currentAttempt.unrenderAll();
   currentAttempt.att++;
   currentAttempt.tick = 0;
-  //clearInterval(currentIntervalID);
+  clearInterval(currentIntervalID);
 
   currentAttempt.startTime = Date.now();
-  //currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
+  currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
 
   currentPlayer.reset();
   currentAttempt.copyObjs();
@@ -404,8 +407,8 @@ function escapeTo(screen) {
         menuLoop.currentTime = 0;
         menuLoop.play();
       }
-      //clearInterval(currentAttempt.intervalID);
-      //currentAttempt.intervalID = "";
+      clearInterval(currentAttempt.intervalID);
+      currentAttempt.intervalID = "";
       windowDiv.prepend(levelSelectorDiv);
       currentScreen = "levelSelect";
       break;
@@ -432,7 +435,7 @@ document.addEventListener("keydown", (e) => {
   }
 
   if (e.key === "r") {
-    //newAttempt(currentAttempt.intervalID);
+    newAttempt(currentAttempt.intervalID);
   }
 
   if (e.key === "n" && noclipBox.checked) {
@@ -455,13 +458,21 @@ document.addEventListener("touchstart", click);
 document.addEventListener("touchend", release);
 
 function click() {
-  if (currentScreen === "playing") {
-    currentPlayer.holding = true;
+  if (currentScreen === "playing" && !currentPlayer.isDead) {
+    currentPlayer.hold = {
+      isHolding: true,
+      startTime: Date.now() - currentAttempt.startTime,
+    };
+    //currentPlayer.holding = true;
   }
 }
 
 function release() {
-  if (currentScreen === "playing") {
-    currentPlayer.holding = false;
+  if (currentScreen === "playing" && !currentPlayer.isDead) {
+    currentPlayer.hold = {
+      isHolding: false,
+      startTime: Date.now() - currentAttempt.startTime,
+    };
+    //currentPlayer.holding = false;
   }
 }
