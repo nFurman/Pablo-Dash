@@ -158,8 +158,17 @@ let currentPlayer;
 // let tickTime = 0;
 // let lastTickTime = 0;
 
+let ticksSinceLastSecond = 0;
+let displayTps = 0;
+
+setInterval(() => {
+  displayTps = ticksSinceLastSecond;
+  ticksSinceLastSecond = 0;
+}, 1000);
+
 let lastDistanceMovedWhenRendered;
 function nextTick() {
+  ticksSinceLastSecond++;
   if (currentPlayer.isDead) return;
   // tickTime = Date.now();
   // console.log(tickTime - lastTickTime);
@@ -256,6 +265,12 @@ function drawStuff() {
   );
 
   currentPlayer.checkWin();
+
+  c.globalAlpha = 0.8;
+  c.fillStyle = "white";
+  c.font = "bold 3vw Courier New";
+  c.fillText(displayTps + " tps", 10, canvas.height - 10);
+  c.globalAlpha = 1;
 }
 
 function animate() {
@@ -371,6 +386,7 @@ function startAttempt(levelObjs, levelSong, offset = 0) {
   currentAttempt.song.currentTime = currentAttempt.songOffset;
 
   drawStuff();
+
   setTimeout(() => {
     currentPlayer.isDead = false;
     currentAttempt.startTime = Date.now();
