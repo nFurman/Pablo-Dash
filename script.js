@@ -13,7 +13,11 @@ const menuLoop = new Audio("resources/menuLoop.mp3");
 menuLoop.volume = 0.3;
 menuLoop.loop = true;
 
-let tps = 300;
+const levelSelectSound = new Audio("resources/level select.mp3");
+levelSelectSound.volume = 0.7;
+
+let tps = 700;
+let fps = 60;
 
 let gridLength = canvas.width / 19.7;
 
@@ -58,6 +62,18 @@ careening_cosmonaut_song.volume = 1;
 
 const fabulous_zonkoid_song = new Audio("resources/fabulous zonkoid.mp3");
 fabulous_zonkoid_song.volume = 0.3;
+
+const mainMenuDiv = document.getElementById("mainMenuDiv");
+const windowDiv = document.getElementById("windowDiv");
+const levelSelectorDiv = document.getElementById("levelSelectorDiv");
+
+const shodBox = document.getElementById("shod");
+const noclipBox = document.getElementById("noclip");
+const menuLoopBox = document.getElementById("menuLoop");
+const tpsBox = document.getElementById("tps");
+const fpsBox = document.getElementById("fps");
+
+levelSelectorDiv.remove();
 
 const gamemodes = {
   cube: {
@@ -137,21 +153,29 @@ let currentBackground;
 let currentGround;
 let currentPlayer;
 
+// let tickTime = 0;
+// let lastTickTime = 0;
+
 let lastDistanceMovedWhenRendered;
 function nextTick() {
+  // tickTime = Date.now();
+  // console.log(tickTime - lastTickTime);
+  // lastTickTime = tickTime;
+
+  currentAttempt.tick++;
   //console.log(currentPlayer.angle);
   //console.log(currentPlayer.hitbox);
   //console.log(currentPlayer.fall);
   //console.log(currentPlayer.jump);
   //console.log(currentPlayer.pos.y, currentGround.y);
-  let potentialTick = Math.round(
-    ((Date.now() - currentAttempt.startTime) * tps) / 1000
-  );
-  if (potentialTick - currentAttempt.tick == 2) {
-    currentAttempt.tick++;
-  } else {
-    currentAttempt.tick = potentialTick;
-  }
+  // let potentialTick = Math.round(
+  //   ((Date.now() - currentAttempt.startTime) * tps) / 1000
+  // );
+  // if (potentialTick - currentAttempt.tick == 2) {
+  //   currentAttempt.tick++;
+  // } else {
+  //   currentAttempt.tick = potentialTick;
+  // }
   //console.log(currentAttempt.tick);
   currentAttempt.distanceMoved = currentAttempt.tick * currentAttempt.speed;
   if (
@@ -189,10 +213,7 @@ function nextTick() {
   currentGround.updatePosition();
 }
 
-function animate() {
-  animationFrame = window.requestAnimationFrame(animate);
-  //console.log(currentAttempt.intervalID);
-
+function drawStuff() {
   currentBackground.draw();
   for (let ob of currentAttempt.renderedHazards) {
     ob.draw();
@@ -228,12 +249,29 @@ function animate() {
   currentGround.draw();
 
   c.fillStyle = "white";
-  c.font = "bold 80px Courier New";
+  c.font = "bold 5.7vw Courier New";
   c.fillText(
     "ATTEMPT  " + currentAttempt.att,
     7 * gridLength - currentAttempt.distanceMoved,
     canvas.height - currentGround.y - 5.5 * gridLength
   );
+
+  currentPlayer.checkWin();
+}
+
+function animate() {
+  if (currentScreen === "playing") {
+    animationFrame = window.requestAnimationFrame(animate);
+  }
+  if (currentScreen == "playing" && !currentPlayer.isDead) {
+    //console.log("fps tick");
+    nextTick();
+
+    for (let i = 1; i < tps / fps; i++) {
+      setTimeout(nextTick, (i * 1000) / tps);
+    }
+  }
+  drawStuff();
 }
 
 function drawHitbox({ color, opacity, x, y, width, height }) {
@@ -264,7 +302,7 @@ function death() {
   //console.log(currentAttempt.intervalID);
   deathSound.play();
   currentAttempt.song.pause();
-  clearInterval(currentAttempt.intervalID);
+  //clearInterval(currentAttempt.intervalID);
   currentPlayer.explode();
   //let currentIntervalID = currentAttempt.intervalID;
   // setTimeout(() => {
@@ -274,15 +312,6 @@ function death() {
   // }, 1000);
   setTimeout(newAttempt, 1000, currentAttempt.intervalID);
 }
-const mainMenuDiv = document.getElementById("mainMenuDiv");
-const windowDiv = document.getElementById("windowDiv");
-const levelSelectorDiv = document.getElementById("levelSelectorDiv");
-
-const shodBox = document.getElementById("shod");
-const noclipBox = document.getElementById("noclip");
-const menuLoopBox = document.getElementById("menuLoop");
-
-levelSelectorDiv.remove();
 
 function playMenuLoop() {
   if (currentScreen != "playing" && menuLoopBox.checked) menuLoop.play();
@@ -302,6 +331,8 @@ menuLoopBox.addEventListener("change", function () {
 
 function playButtonClicked() {
   currentScreen = "levelSelect";
+  fps = fpsBox.value;
+  tps = fps * tpsBox.value;
   mainMenuDiv.remove();
   windowDiv.prepend(levelSelectorDiv);
 }
@@ -322,12 +353,12 @@ function skepticChamberButtonClicked() {
 
 function startAttempt(levelObjs, levelSong, offset = 0) {
   menuLoop.pause();
+  levelSelectSound.play();
   currentScreen = "playing";
   let shod = shodBox.checked;
   currentAttempt = new Attempt(levelObjs, levelSong, 8.7, "cube", shod);
   currentAttempt.att = 1;
-  currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
-  currentAttempt.startTime = Date.now();
+  //currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
   currentBackground = new Background(backgroundImage);
   currentGround = new Ground(groundImage);
   currentPlayer = new Player();
@@ -336,21 +367,27 @@ function startAttempt(levelObjs, levelSong, offset = 0) {
 
   currentAttempt.songOffset = offset;
   currentAttempt.song.currentTime = currentAttempt.songOffset;
-  currentAttempt.song.play();
 
-  animate();
+  drawStuff();
+  setTimeout(() => {
+    currentAttempt.startTime = Date.now();
+    currentAttempt.song.play();
+
+    animate();
+  }, 1000);
 }
 
-function newAttempt(currentIntervalID) {
-  if (currentAttempt.intervalID != currentIntervalID) {
-    return;
-  }
+function newAttempt(/*currentIntervalID*/) {
+  // if (currentAttempt.intervalID != currentIntervalID) {
+  //   return;
+  // }
   currentAttempt.unrenderAll();
   currentAttempt.att++;
-  clearInterval(currentIntervalID);
+  currentAttempt.tick = 0;
+  //clearInterval(currentIntervalID);
 
   currentAttempt.startTime = Date.now();
-  currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
+  //currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
 
   currentPlayer.reset();
   currentAttempt.copyObjs();
@@ -367,8 +404,8 @@ function escapeTo(screen) {
         menuLoop.currentTime = 0;
         menuLoop.play();
       }
-      clearInterval(currentAttempt.intervalID);
-      currentAttempt.intervalID = "";
+      //clearInterval(currentAttempt.intervalID);
+      //currentAttempt.intervalID = "";
       windowDiv.prepend(levelSelectorDiv);
       currentScreen = "levelSelect";
       break;
@@ -395,7 +432,7 @@ document.addEventListener("keydown", (e) => {
   }
 
   if (e.key === "r") {
-    newAttempt(currentAttempt.intervalID);
+    //newAttempt(currentAttempt.intervalID);
   }
 
   if (e.key === "n" && noclipBox.checked) {

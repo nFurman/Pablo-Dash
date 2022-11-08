@@ -393,7 +393,7 @@ class Player {
   }
 
   doFall(fallSpeed) {
-    console.log("fallin");
+    //console.log("fallin");
     if (this.gamemode === "wave" && this.jump.isJumping) {
       this.renderedWaveTrails.push({
         startDistanceMoved: this.jump.tickStarted * currentAttempt.speed,
@@ -647,7 +647,27 @@ class Player {
     }
   }
 
+  drawWin() {
+    console.log(currentAttempt.distanceMoved - currentAttempt.winX);
+    c.fillStyle = "white";
+    c.font = "bold 8vw Georgia";
+    c.globalAlpha = (currentAttempt.distanceMoved - currentAttempt.winX) / 400;
+    c.fillText(
+      "WIN",
+      7 * gridLength,
+      0.5 * canvas.height // - 5.5 * gridLength - currentGround.y
+    );
+    c.globalAlpha = 1;
+  }
+
+  checkWin() {
+    if (currentAttempt.distanceMoved >= currentAttempt.winX) {
+      this.drawWin();
+    }
+  }
+
   checkDeath() {
+    if (this.pos.y > gridLength * 30) death();
     for (let ob of currentAttempt.renderedHazards) {
       if (ob.checkDeath()) {
         death();
@@ -994,14 +1014,31 @@ class Explosion {
     //console.log(timePassed);
     c.beginPath();
     //c.arc(this.pos.x, canvas.height - this.pos.y, timePassed, 0, 2 * Math.PI);
+    c.fillStyle = "white";
+    c.globalAlpha = Math.sin(1.6 * this.timePassed + 1.3);
+
     c.arc(
       this.pos.x,
       canvas.height - this.pos.y - currentGround.y,
-      50 * Math.sin(3 * this.timePassed) + 30,
+      50 * Math.sin(3.5 * this.timePassed) + 30,
       0,
       2 * Math.PI
     );
+    c.fill();
+
+    c.beginPath();
+    c.strokeStyle = "white";
+    c.arc(
+      this.pos.x,
+      canvas.height - this.pos.y - currentGround.y,
+      Math.abs(65 * Math.sin(3 * this.timePassed - 0.9) + 50),
+      0,
+      2 * Math.PI
+    );
+    c.lineWidth = 4;
+    c.globalAlpha = 0.2;
     c.stroke();
+    c.globalAlpha = 1;
   }
 }
 
@@ -1431,6 +1468,7 @@ class Attempt {
     this.levelObjs = levelObjs;
     this.song = song;
     this.distanceMoved = 0;
+    this.winX = 0;
     this.att = 1;
     this.tick = 0;
     this.speedSetting = startingSpeed;
@@ -1454,7 +1492,11 @@ class Attempt {
     for (let ob of this.currentObjs) {
       ob.originalPos.x = ob.originalPos.x * gridLength + currentPlayer.pos.x;
       ob.originalPos.y = ob.originalPos.y * gridLength;
+      if (ob.originalPos.x > this.winX) {
+        this.winX = ob.originalPos.x;
+      }
     }
+    this.winX = this.winX - currentPlayer.pos.x + 2 * gridLength;
   }
 
   renderAll() {
