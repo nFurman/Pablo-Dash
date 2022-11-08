@@ -368,13 +368,17 @@ class Player {
     }
     this.jump.isJumping = false;
     while (currentAttempt.renderedWaveTrails.length > 0) {
-      console.log("deletingre");
       currentAttempt.renderedWaveTrails.shift();
     }
-    if (gamemode != "cube") {
-      this.doFall();
-    } else {
+    if (gamemode === "cube") {
+      this.unrenderAllWaveTrails();
       this.doFall("mid");
+    } else {
+      if (this.hold.isHolding) {
+        this.doJump();
+      } else {
+        this.doFall();
+      }
     }
   }
 
@@ -740,7 +744,12 @@ class Player {
       }
     }
   }
-  drawWaveAndTrails() {}
+
+  unrenderAllWaveTrails() {
+    while (this.renderedWaveTrails.length > 0) {
+      this.renderedWaveTrails.shift();
+    }
+  }
 
   drawWaveTrail(x, y, width, length, angle) {
     c.fillStyle = "#000";
