@@ -77,7 +77,7 @@ button {
   font-family: copperPlate;
   font-size: 5vw;
   color: aliceblue;
-  background-image: url("https://img.freepik.com/free-vector/gradient-background-green-tones_23-2148374530.jpg");
+  background-image: url("https://static.vecteezy.com/system/resources/thumbnails/001/782/780/small/light-purple-pink-gradient-blur-backdrop-vector.jpg");
 }
 
 #playGameButton {
@@ -86,6 +86,7 @@ button {
   width: 35%;
   height: 25%;
 }
+
 #mainMenuDiv {
   width: 100%;
   height: 100%;
@@ -105,9 +106,16 @@ button {
 }
 
 .levelButton {
+  background-image: url("https://img.freepik.com/free-vector/gradient-background-green-tones_23-2148374530.jpg");
   top: 35%;
   width: 29%;
   height: 25%;
+}
+
+#moiPlaygroundButton {
+  font-size: 4vw;
+  top: 5%;
+  left: 35.5%;
 }
 
 #careeningCosmonautButton {
@@ -123,10 +131,18 @@ button {
 }
 
 #teIkaAMauiButton {
+  background-image: url("https://t4.ftcdn.net/jpg/02/98/68/73/360_F_298687332_D0GAA6fAgr70NWtF8UKXPyLx0mTGug0x.jpg");
   top: 65%;
   left: 35.5%;
 }
 
 #windowDiv {
   position: relative;
+}
+
+#credits {
+  font-size: 3vw;
+
+  bottom: 13px;
+  left: 13px;
 }

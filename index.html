@@ -11,6 +11,13 @@
     <div id="windowDiv">
       <div id="levelSelectorDiv">
         <button
+          id="moiPlaygroundButton"
+          class="levelButton"
+          onclick="moiPlaygroundButtonClicked()"
+        >
+          Moi Playground
+        </button>
+        <button
           id="careeningCosmonautButton"
           class="levelButton"
           onclick="careeningCosmonautButtonClicked()"
@@ -54,12 +61,14 @@
         <label for="tps" id="tpsLabel">tps</label>
         <!--<input id="fps" type="number" value="2" />
         <label for="fps" id="fpsLabel">fpsr</label>-->
+        <button id="credits" onclick="creditsButtonClicked()">credits</button>
       </div>
 
       <canvas id="canvas"> </canvas>
     </div>
 
     <script src="classes.js"></script>
+    <script src="levels/moi playground"></script>
     <script src="levels/careening cosmonaut.js"></script>
     <script src="levels/fabulous zonkoid.js"></script>
     <script src="levels/skeptic chamber.js"></script>

@@ -1,0 +1,94 @@
+const moi_playground = [
+  { type: "spike", originalPos: { x: 9.5, y: 1 } },
+
+  { type: "flatSpike", originalPos: { x: 15, y: 1 } },
+  { type: "spike", originalPos: { x: 16, y: 1 } },
+
+  { type: "block", originalPos: { x: 22, y: 1 } },
+  { type: "flatSpike", originalPos: { x: 22, y: 2 } },
+  { type: "block", originalPos: { x: 23, y: 1 } },
+  { type: "block", originalPos: { x: 24, y: 1 } },
+  { type: "block", originalPos: { x: 25, y: 1 } },
+  { type: "block", originalPos: { x: 26, y: 1 } },
+  { type: "yellowPad", originalPos: { x: 26, y: 2 } },
+  { type: "spike", originalPos: { x: 27, y: 2 } },
+  { type: "flatSpike", originalPos: { x: 27, y: 2 } },
+  { type: "flatSpike", originalPos: { x: 28, y: 2 } },
+  { type: "block", originalPos: { x: 27, y: 1 } },
+  { type: "block", originalPos: { x: 28, y: 1 } },
+
+  { type: "wavePortal", originalPos: { x: 30, y: 5 } },
+
+  { type: "flatSpike", originalPos: { x: 29, y: 0.8 }, rotation: 1 },
+  { type: "block", originalPos: { x: 29, y: 1.8 } },
+  { type: "block", originalPos: { x: 30, y: 1.8 } },
+  { type: "block", originalPos: { x: 31, y: 1.8 } },
+  { type: "block", originalPos: { x: 32, y: 1.8 } },
+  { type: "block", originalPos: { x: 33, y: 1.8 } },
+  { type: "block", originalPos: { x: 34, y: 1.8 } },
+  { type: "block", originalPos: { x: 35, y: 1.8 } },
+  { type: "block", originalPos: { x: 36, y: 1.8 } },
+  { type: "block", originalPos: { x: 37, y: 1.8 } },
+  { type: "block", originalPos: { x: 38, y: 1.8 } },
+  { type: "block", originalPos: { x: 39, y: 1.8 } },
+  { type: "block", originalPos: { x: 40, y: 1.8 } },
+  { type: "block", originalPos: { x: 41, y: 1.8 } },
+  { type: "block", originalPos: { x: 42, y: 1.8 } },
+  { type: "block", originalPos: { x: 43, y: 1.8 } },
+  { type: "block", originalPos: { x: 44, y: 1.8 } },
+  { type: "block", originalPos: { x: 45, y: 1.8 } },
+  { type: "block", originalPos: { x: 46, y: 1.8 } },
+  { type: "flatSpike", originalPos: { x: 46, y: 0.8 }, rotation: 1 },
+
+  { type: "spike", originalPos: { x: 29, y: 10 }, rotation: 0 },
+  { type: "block", originalPos: { x: 29, y: 9 } },
+  { type: "block", originalPos: { x: 29, y: 8 } },
+  { type: "block", originalPos: { x: 30, y: 7 } },
+  { type: "block", originalPos: { x: 31, y: 6 } },
+  { type: "block", originalPos: { x: 32, y: 6 } },
+  { type: "block", originalPos: { x: 33, y: 6 } },
+  { type: "block", originalPos: { x: 34, y: 6 } },
+  { type: "block", originalPos: { x: 35, y: 6 } },
+  { type: "block", originalPos: { x: 36, y: 6 } },
+  { type: "block", originalPos: { x: 37, y: 6 } },
+  { type: "block", originalPos: { x: 38, y: 6 } },
+  { type: "block", originalPos: { x: 39, y: 6 } },
+  { type: "block", originalPos: { x: 40, y: 6 } },
+  { type: "block", originalPos: { x: 41, y: 6 } },
+  { type: "block", originalPos: { x: 42, y: 6 } },
+  { type: "block", originalPos: { x: 43, y: 6 } },
+  { type: "block", originalPos: { x: 44, y: 6 } },
+  { type: "block", originalPos: { x: 45, y: 6 } },
+  { type: "block", originalPos: { x: 46, y: 6 } },
+  { type: "block", originalPos: { x: 47, y: 7 } },
+  { type: "block", originalPos: { x: 48, y: 8 } },
+  { type: "block", originalPos: { x: 48, y: 9 } },
+  { type: "block", originalPos: { x: 48, y: 10 } },
+  { type: "spike", originalPos: { x: 48, y: 11 }, rotation: 0 },
+
+  { type: "spike", originalPos: { x: 29, y: 2.8 }, rotation: 0 },
+  { type: "flatSpike", originalPos: { x: 30, y: 2.8 }, rotation: 0 },
+
+  { type: "spike", originalPos: { x: 32, y: 5 }, rotation: 1 },
+
+  { type: "spike", originalPos: { x: 33.5, y: 2.8 }, rotation: 0 },
+
+  { type: "spike", originalPos: { x: 35, y: 5 }, rotation: 1 },
+
+  { type: "spike", originalPos: { x: 36.5, y: 2.8 }, rotation: 0 },
+
+  { type: "spike", originalPos: { x: 38, y: 5 }, rotation: 1 },
+
+  { type: "spike", originalPos: { x: 39.5, y: 2.8 }, rotation: 0 },
+
+  { type: "spike", originalPos: { x: 41, y: 5 }, rotation: 1 },
+
+  { type: "spike", originalPos: { x: 42.5, y: 2.8 }, rotation: 0 },
+
+  { type: "spike", originalPos: { x: 44, y: 5 }, rotation: 1 },
+
+  { type: "block", originalPos: { x: 46, y: 2.8 } },
+  { type: "spike", originalPos: { x: 46, y: 3.8 } },
+
+  { type: "spike", originalPos: { x: 47, y: 6 }, rotation: 1.5 },
+];

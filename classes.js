@@ -318,7 +318,7 @@ class Player {
       height: this.pos.y - this.sideLength,
     };
     this.renderedWaveTrails = [];
-    this.wavePulse = 0.3;
+    this.wavePulse = 0.1;
     this.isExploding = false;
     this.explosion = {};
     this.hold = { isHolding: false, timeStarted: 0 };
@@ -592,7 +592,7 @@ class Player {
             this.pos.y =
               this.fall.heightStarted + gridLength * (-9.6 * fallProgress);
           } else if (this.fall.startSpeed === "mid") {
-            if (fallProgress < 0.53) {
+            if (fallProgress < 0.6) {
               this.pos.y =
                 this.fall.heightStarted -
                 8 * gridLength * fallProgress * fallProgress -

@@ -6,6 +6,11 @@ const c = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+window.addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
 const tau = 2 * Math.PI;
 
 const deathSound = new Audio("resources/explode_11.mp3");
@@ -56,6 +61,9 @@ yellowPadImage.src = "resources/yellowPad.png";
 const pinkPadImage = new Image();
 pinkPadImage.src = "resources/pinkPad.png";
 
+const moi_playground_song = new Audio("resources/moi playground.mp3");
+moi_playground_song.volume = 0.8;
+
 const skeptic_chamber_song = new Audio("resources/skeptic chamber.mp3");
 skeptic_chamber_song.volume = 0.6;
 
@@ -88,8 +96,8 @@ const gamemodes = {
   },
   wave: {
     image: waveImage,
-    hitbox: { left: 13, right: 40, top: 33, bottom: 33 },
-    hitboxForBlocks: { left: 13, right: 40, top: 33, bottom: 33 },
+    hitbox: { left: 17, right: 43, top: 30, bottom: 30 },
+    hitboxForBlocks: { left: 17, right: 43, top: 30, bottom: 30 },
   },
 };
 
@@ -97,7 +105,7 @@ const objs = {
   spike: {
     image: spikeImage,
     objType: "hazard",
-    hitbox: { top: 39, bottom: 15, left: 34, right: 34 },
+    hitbox: { top: 39, bottom: 20, left: 34, right: 34 },
     width: 1,
     height: 1,
   },
@@ -148,9 +156,10 @@ const objs = {
   },
 };
 
-// for (let obj of skeptic_chamber) {
-//   obj.originalPos.x -= 37;
+// for (let obj of te_ika_a_maui) {
+//   obj.originalPos.x -= 49.2;
 // }
+
 let currentScreen = "mainMenu";
 
 let currentAttempt;
@@ -349,12 +358,21 @@ menuLoopBox.addEventListener("change", function () {
   }
 });
 
+function creditsButtonClicked() {
+  alert("Te Ika-a-Maui by jcak\n     song: discarded - miami");
+}
+
 function playButtonClicked() {
   currentScreen = "levelSelect";
   //fps = fpsBox.value;
   tps = tpsBox.value;
   mainMenuDiv.remove();
   windowDiv.prepend(levelSelectorDiv);
+}
+
+function moiPlaygroundButtonClicked() {
+  levelSelectorDiv.remove();
+  startAttempt(moi_playground, moi_playground_song);
 }
 
 function careeningCosmonautButtonClicked() {
@@ -399,11 +417,13 @@ function startAttempt(levelObjs, levelSong, offset = 0) {
   //easy fix for hitboxes showing before the level started
 
   setTimeout(() => {
-    currentPlayer.isDead = false;
-    currentAttempt.startTime = Date.now();
-    currentAttempt.song.play();
+    if (currentScreen === "playing") {
+      currentPlayer.isDead = false;
+      currentAttempt.startTime = Date.now();
+      currentAttempt.song.play();
 
-    animate();
+      animate();
+    }
   }, 1000);
 }
 
