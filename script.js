@@ -182,20 +182,21 @@ let lastDistanceMovedWhenRendered;
 function nextTick() {
   ticksSinceLastSecond++;
   if (currentPlayer.isDead) return;
-  // tickTime = Date.now();
+  // tickTime = performance.now();
   // console.log(tickTime - lastTickTime);
   // lastTickTime = tickTime;
 
   //currentAttempt.tick++;
 
-  // let potentialTick = ((Date.now() - currentAttempt.startTime) * tps) / 1000;
+  // let potentialTick = ((performance.now() - currentAttempt.startTime) * tps) / 1000;
   // if (potentialTick === currentAttempt.tick) {
   //   currentAttempt.tick++;
   // } else {
   //   currentAttempt.tick = potentialTick;
   // }
 
-  currentAttempt.tick = ((Date.now() - currentAttempt.startTime) * tps) / 1000;
+  currentAttempt.tick =
+    ((performance.now() - currentAttempt.startTime) * tps) / 1000;
   //console.log(currentAttempt.tick);
   currentAttempt.distanceMoved = currentAttempt.tick * currentAttempt.speed;
   if (
@@ -419,7 +420,7 @@ function startAttempt(levelObjs, levelSong, offset = 0) {
   setTimeout(() => {
     if (currentScreen === "playing") {
       currentPlayer.isDead = false;
-      currentAttempt.startTime = Date.now();
+      currentAttempt.startTime = performance.now();
       currentAttempt.song.play();
 
       animate();
@@ -436,7 +437,7 @@ function newAttempt(currentIntervalID) {
   currentAttempt.tick = 0;
   clearInterval(currentIntervalID);
 
-  currentAttempt.startTime = Date.now();
+  currentAttempt.startTime = performance.now();
   currentAttempt.intervalID = setInterval(nextTick, 1000 / tps);
 
   currentPlayer.reset();
@@ -508,7 +509,7 @@ function click() {
   if (currentScreen === "playing" && !currentPlayer.isDead) {
     currentPlayer.hold = {
       isHolding: true,
-      startTime: Date.now() - currentAttempt.startTime,
+      startTime: performance.now() - currentAttempt.startTime,
     };
     //currentPlayer.holding = true;
   }
@@ -518,7 +519,7 @@ function release() {
   if (currentScreen === "playing" && !currentPlayer.isDead) {
     currentPlayer.hold = {
       isHolding: false,
-      startTime: Date.now() - currentAttempt.startTime,
+      startTime: performance.now() - currentAttempt.startTime,
     };
     //currentPlayer.holding = false;
   }

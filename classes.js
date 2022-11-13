@@ -1023,7 +1023,7 @@ class Player {
     if (currentAttempt.shod) return;
     this.isExploding = true;
     this.explosion = new Explosion({
-      timeStarted: Date.now(),
+      timeStarted: performance.now(),
       pos: {
         x: this.pos.x + this.sideLength / 2,
         y: this.pos.y - this.sideLength / 2,
@@ -1040,7 +1040,7 @@ class Explosion {
   }
 
   drawExplosion() {
-    this.timePassed = (Date.now() - this.timeStarted) / 1000;
+    this.timePassed = (performance.now() - this.timeStarted) / 1000;
     //console.log(timePassed);
     c.beginPath();
     //c.arc(this.pos.x, canvas.height - this.pos.y, timePassed, 0, 2 * Math.PI);
